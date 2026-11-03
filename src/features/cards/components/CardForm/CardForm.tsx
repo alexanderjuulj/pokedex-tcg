@@ -15,13 +15,17 @@ import {
 } from "@/components/ui";
 import { CARD_INVALIDATES } from "@/constants/invalidates";
 import {
+  useBinders,
   useCatalogCardPokemon,
+  useOwnedCards,
   usePokedex,
+  usePutInBinder,
+  useSetFeaturedCard,
   useTableMutations,
   type CatalogCard,
   type OwnedCard,
 } from "@/hooks/queries";
-import { formatCardNumber, formatDexNumber, parsePrice, priceInput } from "@/lib/pokemon";
+import { formatCardNumber, formatDexNumber } from "@/lib/pokemon";
 import { emptyToNull } from "@/lib/utils";
 import {
   CONDITION_LABELS,
@@ -29,6 +33,7 @@ import {
   GRADING_LABELS,
   LANGUAGE_LABELS,
 } from "../../constants";
+import { binderIdOf, placementChoices, type Placement } from "../../placement";
 import type { CardFinish } from "../../types";
 import CardImage from "../CardImage/CardImage";
 import styles from "./CardForm.module.scss";
@@ -100,15 +105,25 @@ const CardForm: React.FC<CardFormProps> = ({ card, pokemonId: initialPokemonId, 
   const [cardNumber, setCardNumber] = useState(card?.number ?? "");
   const [finish, setFinish] = useState<string>(card?.finish ?? finishes[0]);
   const [firstEdition, setFirstEdition] = useState(card?.first_edition ?? false);
-  const [condition, setCondition] = useState(card?.condition ?? "near_mint");
+  const [condition, setCondition] = useState(card?.condition ?? "mint");
   const [language, setLanguage] = useState(card?.language ?? "en");
   const [grading, setGrading] = useState(card?.grading_company ?? "none");
   const [grade, setGrade] = useState(card?.grade ?? "");
-  const [price, setPrice] = useState(priceInput(card?.price_paid ?? null));
   const [acquiredOn, setAcquiredOn] = useState(card?.acquired_on ?? "");
   const [location, setLocation] = useState(card?.location ?? "");
   const [notes, setNotes] = useState(card?.notes ?? "");
   const [error, setError] = useState<string | null>(null);
+
+  // Which binder it goes in. Until one is picked (or when the pick no longer
+  // fits, after "Counts for" changes), where it is or belongs.
+  const binders = useBinders();
+  const owned = useOwnedCards();
+  const setFeatured = useSetFeaturedCard();
+  const putInBinder = usePutInBinder();
+  const [chosen, setChosen] = useState<Placement | null>(null);
+  const choices = placementChoices(card, Number(pokemonId), binders.data ?? [], owned.data ?? []);
+  const placement =
+    chosen && choices.items.some((item) => item.value === chosen) ? chosen : choices.initial;
 
   // A tag-team card counts for one of the Pokémon on it.
   const pokedex = usePokedex();
@@ -126,11 +141,6 @@ const CardForm: React.FC<CardFormProps> = ({ card, pokemonId: initialPokemonId, 
 
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    const paid = parsePrice(price);
-    if (price.trim() !== "" && paid === null) {
-      setError("The price should be a number of kroner, like 12,50.");
-      return;
-    }
     const graded = grading !== "none";
     const values = {
       pokemon_id: Number(pokemonId),
@@ -140,9 +150,9 @@ const CardForm: React.FC<CardFormProps> = ({ card, pokemonId: initialPokemonId, 
       language,
       grading_company: graded ? grading : null,
       grade: graded ? emptyToNull(grade) : null,
-      price_paid: paid,
       acquired_on: emptyToNull(acquiredOn),
-      location: emptyToNull(location),
+      // Where it is when it's in no binder.
+      location: placement === "none" ? emptyToNull(location) : null,
       notes: emptyToNull(notes),
       ...(!printed && {
         name: cardName.trim(),
@@ -151,16 +161,33 @@ const CardForm: React.FC<CardFormProps> = ({ card, pokemonId: initialPokemonId, 
       }),
     };
     try {
+      let id: number;
       if (card) {
         const moved = Number(pokemonId) !== card.pokemon_id;
         // A card leaves its slot when it moves; the triggers find the slots
         // new holders.
-        await update.mutateAsync({
+        const saved = await update.mutateAsync({
           id: card.id!,
-          values: moved ? { ...values, is_featured: false } : values,
+          values: {
+            ...values,
+            ...(moved && { is_featured: false }),
+            ...(placement === "none" && { binder_id: null, binder_pocket: null }),
+          },
         });
+        id = saved.id;
       } else {
-        await create.mutateAsync({ ...values, catalog_card_id: printed?.catalogCardId ?? null });
+        const saved = await create.mutateAsync({
+          ...values,
+          catalog_card_id: printed?.catalogCardId ?? null,
+        });
+        id = saved.id;
+      }
+      // Into its binder: a first card is in its Pokédex pocket already.
+      const binderId = binderIdOf(placement);
+      if (placement === "slot" && choices.swapsSlot) {
+        await setFeatured.mutateAsync(id);
+      } else if (binderId !== null && binderId !== card?.binder_id) {
+        await putInBinder.mutateAsync({ card_id: id, binder_id: binderId });
       }
       onDone();
     } catch (submitError) {
@@ -201,6 +228,30 @@ const CardForm: React.FC<CardFormProps> = ({ card, pokemonId: initialPokemonId, 
           </Field>
         </Grid>
       )}
+      <Flex direction="column" gap="2">
+        <Field label="Binder">
+          <Select
+            value={placement}
+            onValueChange={(value) => setChosen(value as Placement)}
+            items={choices.items}
+            required
+          />
+        </Field>
+        {choices.hint && (
+          <Text size="2" color="gray">
+            {choices.hint}
+          </Text>
+        )}
+      </Flex>
+      {placement === "none" && (
+        <Field label="Kept where">
+          <Input
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            placeholder="A deck box, the shoebox…"
+          />
+        </Field>
+      )}
       <Grid columns={{ initial: "1", xs: "2" }} gap="4">
         {pokemonItems.length > 1 && (
           <Field label="Counts for">
@@ -224,23 +275,8 @@ const CardForm: React.FC<CardFormProps> = ({ card, pokemonId: initialPokemonId, 
             <Input value={grade} onChange={(e) => setGrade(e.target.value)} placeholder="10" required />
           </Field>
         )}
-        <Field label="Paid (kr)">
-          <Input
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            inputMode="decimal"
-            placeholder="0,00"
-          />
-        </Field>
         <Field label="Got it on">
           <DateInput value={acquiredOn} onChange={setAcquiredOn} />
-        </Field>
-        <Field label="Kept in">
-          <Input
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            placeholder="Binder 1, page 3"
-          />
         </Field>
       </Grid>
       {(!printed || printed.hasFirstEdition) && (
@@ -254,7 +290,12 @@ const CardForm: React.FC<CardFormProps> = ({ card, pokemonId: initialPokemonId, 
         />
       </Field>
       <Flex direction={{ initial: "column", xs: "row" }}>
-        <Button type="submit" disabled={create.isPending || update.isPending}>
+        <Button
+          type="submit"
+          disabled={
+            create.isPending || update.isPending || setFeatured.isPending || putInBinder.isPending
+          }
+        >
           {card ? "Save" : "Add card"}
         </Button>
       </Flex>

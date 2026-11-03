@@ -3,7 +3,7 @@
 A Pokémon TCG collection for your phone, built to be handed down. Pick the
 regions you collect (Kanto and Johto, say), and the Pokédex fills with color
 as you catch a card for each of their Pokémon, from any era of the card game.
-Every card keeps its details (set, rarity, finish, condition, grade, price)
+Every card keeps its details (set, rarity, finish, condition, grade)
 and its story. Virtual binders show where each card sits, page by page, and
 the sets show where to find the Pokémon you're still missing.
 
@@ -78,8 +78,10 @@ and nightly backups. After that, every update is `pnpm deploy:server`.
 - **Free binders:** for extras and duplicates. A card goes in the first empty
   pocket.
 - **Adding a card:** find its Pokémon (or its set), tap the printed card you
-  have, and fill in the details. Cards the catalogue doesn't know (other
-  prints, jumbo cards) can be entered by hand.
+  have, and fill in the details. The form says which binder and pocket it
+  goes in: a Pokémon's first card goes in its Pokédex pocket, a duplicate in
+  your free binder, and you can change it. Cards the catalogue doesn't know
+  (other prints, jumbo cards) can be entered by hand.
 - **Sets:** every set, with how many of the Pokémon you still need are in it,
   to see which packs are worth opening.
 
@@ -118,9 +120,6 @@ Phone / browser ──▶ Vite (:5320)  ──/api──▶  Hono API (:5321)  �
 
 Checks: `pnpm lint` and `pnpm build` (which type-checks the app, the server
 and the db tool). The deploy runs both before shipping anything.
-
-Prices are entered and shown in Danish kroner (`formatPrice` and
-`parsePrice` in `src/lib/pokemon.ts`).
 
 ## Data safety
 

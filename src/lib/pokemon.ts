@@ -1,4 +1,4 @@
-// Shared Pokédex and card logic: numbers, images, units and prices.
+// Shared Pokédex and card logic: numbers, images and units.
 
 import { fold, parseDate } from "./utils";
 
@@ -47,19 +47,3 @@ export const formatReleased = (releasedOn: string | null) =>
   releasedOn
     ? parseDate(releasedOn).toLocaleDateString("en-GB", { month: "short", year: "numeric" })
     : "Undated";
-
-// Prices are stored in øre.
-export const formatPrice = (ore: number) =>
-  (ore / 100).toLocaleString("da-DK", { style: "currency", currency: "DKK" });
-
-// "12,50", "12.5" or "12" kroner → øre; null when empty or not a number.
-export function parsePrice(text: string): number | null {
-  const value = Number(text.trim().replace(",", "."));
-  return text.trim() === "" || !Number.isFinite(value) || value < 0
-    ? null
-    : Math.round(value * 100);
-}
-
-// For the price field when editing: øre → "12,50".
-export const priceInput = (ore: number | null) =>
-  ore === null ? "" : (ore / 100).toFixed(2).replace(".", ",").replace(/,00$/, "");

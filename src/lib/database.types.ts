@@ -99,7 +99,6 @@ export type Database = {
           condition: string;
           grading_company: string | null;
           grade: string | null;
-          price_paid: number | null;
           acquired_on: string | null;
           location: string | null;
           notes: string | null;
@@ -122,7 +121,6 @@ export type Database = {
           condition?: string;
           grading_company?: string | null;
           grade?: string | null;
-          price_paid?: number | null;
           acquired_on?: string | null;
           location?: string | null;
           notes?: string | null;
@@ -145,7 +143,6 @@ export type Database = {
           condition?: string;
           grading_company?: string | null;
           grade?: string | null;
-          price_paid?: number | null;
           acquired_on?: string | null;
           location?: string | null;
           notes?: string | null;
@@ -304,7 +301,6 @@ export type Database = {
           condition: string | null;
           grading_company: string | null;
           grade: string | null;
-          price_paid: number | null;
           acquired_on: string | null;
           location: string | null;
           notes: string | null;

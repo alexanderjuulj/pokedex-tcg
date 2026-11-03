@@ -2,7 +2,7 @@ import type React from "react";
 import { Link } from "react-router";
 import { Badge, Flex, Text } from "@/components/ui";
 import type { OwnedCard } from "@/hooks/queries";
-import { formatCardNumber, formatPrice } from "@/lib/pokemon";
+import { formatCardNumber } from "@/lib/pokemon";
 import { formatDate } from "@/lib/utils";
 import { BinderPlaceLink } from "@/features/binders/components";
 import type { BinderPlace } from "@/features/binders/layout";
@@ -49,7 +49,6 @@ const CardFacts: React.FC<CardFactsProps> = ({ card, place }) => {
         ? `${GRADING_LABELS[card.grading_company as GradingCompany]} ${card.grade}`
         : "Not graded",
     ],
-    ["Paid", card.price_paid !== null ? formatPrice(card.price_paid) : "—"],
     ["Got it", card.acquired_on ? formatDate(card.acquired_on) : "—"],
     ["Kept in", place ? <BinderPlaceLink place={place} /> : (card.location ?? "—")],
     ["Added", formatDate(card.created_at!.slice(0, 10))],
