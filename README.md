@@ -299,8 +299,10 @@ Then start the app again.
 - **Adding a card:** find its Pokémon (or its set), tap the card you have
   among all the cards ever printed, and fill in the details. The form says
   which binder and pocket the card goes in, and you can change it.
-  - **A graded card** stays outside the binders (a slab doesn't fit in a
-    pocket), and its Pokédex pocket stays free for a loose card.
+  - **A card in a top loader** (or a box) can be kept outside the binders:
+    pick "Not in a binder" and say where it is. A graded card always is,
+    since a slab doesn't fit in a pocket. If it's the Pokémon's card in the
+    Pokédex, it still counts, and its pocket stays free for a loose card.
   - **A card that isn't in the list** (another print, a jumbo card) can be
     entered by hand.
 - **Sets** show how many of the Pokémon you still need are in each one, to

@@ -55,13 +55,35 @@ const CardSinglePage: React.FC = () => {
 
   const data = card.data;
   const allBinders = binders.data ?? [];
-  // The card in its Pokémon's slot stays in its Pokédex binder; any other can
-  // go in a free binder, or move to another. A graded card goes in none: a
-  // slab doesn't fit in a pocket.
+  // The card in its Pokémon's slot sits in its Pokédex pocket, or is kept
+  // outside the binder (a top loader); any other can go in a free binder, or
+  // move to another. A graded card goes in none: a slab doesn't fit in a
+  // pocket.
   const graded = Boolean(data.grading_company);
   const inSlot = Boolean(data.is_featured && pokemonPlace(data.pokemon_id!, allBinders));
-  const binderItems = inSlot
+  const takeOut = {
+    label: "Take out of the binder",
+    onSelect: () =>
+      update.mutate({
+        id: data.id!,
+        values: { binder_id: null, binder_pocket: null, kept_outside: true },
+      }),
+  };
+  const slotItems = !inSlot
     ? []
+    : !data.kept_outside
+      ? [takeOut]
+      : graded
+        ? []
+        : [
+            {
+              label: "Put back in its pocket",
+              onSelect: () =>
+                update.mutate({ id: data.id!, values: { kept_outside: false, location: null } }),
+            },
+          ];
+  const binderItems = inSlot
+    ? slotItems
     : [
         ...allBinders
           .filter((binder) => binder.kind === "free" && binder.id !== data.binder_id && !graded)
@@ -78,15 +100,7 @@ const CardSinglePage: React.FC = () => {
                 },
               ),
           })),
-        ...(data.binder_id
-          ? [
-              {
-                label: "Take out of the binder",
-                onSelect: () =>
-                  update.mutate({ id: data.id!, values: { binder_id: null, binder_pocket: null } }),
-              },
-            ]
-          : []),
+        ...(data.binder_id ? [takeOut] : []),
       ];
   return (
     <PageLayout>

@@ -23,7 +23,7 @@ import type { BinderKind } from "@/features/binders/types";
 import { BinderPages, type Pocket } from "./components";
 
 // A Pokédex binder: each Pokémon's pocket holds the card in its slot (unless
-// it's graded, and kept outside the binder).
+// it's kept outside the binder, in a top loader or a slab).
 function pokedexPockets(binder: Binder, cards: OwnedCard[], names: Map<number, string>) {
   const slots = new Map(
     cards.filter((card) => card.is_featured).map((card) => [card.pokemon_id, card]),
@@ -33,7 +33,7 @@ function pokedexPockets(binder: Binder, cards: OwnedCard[], names: Map<number, s
       if (pokemonId === null) return { kind: "unused" };
       const card = slots.get(pokemonId);
       if (!card) return { kind: "pokemon", pokemonId, name: names.get(pokemonId) ?? "" };
-      return card.grading_company ? { kind: "graded", card } : { kind: "card", card };
+      return card.kept_outside ? { kind: "outside", card } : { kind: "card", card };
     }),
   );
 }

@@ -14,9 +14,9 @@ import styles from "./BinderPages.module.scss";
 
 export type Pocket =
   | { kind: "card"; card: OwnedCard }
-  // A Pokédex binder's pocket whose card is graded: the slab is kept outside
-  // the binder, so the pocket is empty.
-  | { kind: "graded"; card: OwnedCard }
+  // A Pokédex binder's pocket whose card is kept outside the binder (a top
+  // loader, a slab): the pocket is empty.
+  | { kind: "outside"; card: OwnedCard }
   // A Pokédex binder's pocket for a Pokémon not caught yet.
   | { kind: "pokemon"; pokemonId: number; name: string }
   // A free binder's empty pocket, and the one the next card goes in.
@@ -99,13 +99,13 @@ const BinderPages: React.FC<BinderPagesProps> = ({
             />
           </Link>
         );
-      case "graded":
+      case "outside":
         return (
           <Link
             key={index}
             to={`/cards/${pocket.card.id}`}
-            className={cn(className, styles.pocket__graded)}
-            title={`Graded, kept in ${pocket.card.location ?? "a slab"}`}
+            className={cn(className, styles.pocket__outside)}
+            title={`Kept outside the binder${pocket.card.location ? `: ${pocket.card.location}` : ""}`}
           >
             <CardImage
               catalogCardId={pocket.card.catalog_card_id}
@@ -114,7 +114,9 @@ const BinderPages: React.FC<BinderPagesProps> = ({
               alt={pocket.card.name ?? ""}
               className={styles.pocket_faded}
             />
-            <span className={styles.pocket_grade}>{gradeLabel(pocket.card)}</span>
+            <span className={styles.pocket_tag}>
+              {gradeLabel(pocket.card) ?? pocket.card.location ?? "Outside"}
+            </span>
           </Link>
         );
       case "pokemon":

@@ -6,17 +6,21 @@ import { freePlace, pokemonPlace, type BinderPlace } from "@/features/binders/la
 //   always takes it (a trigger), and another card can take it over
 //   (set_featured_card).
 // - "binder:<id>": the first empty pocket of a free binder (put_in_binder).
-// - "none": in no binder; `location` then says where it is.
+// - "none": kept outside the binders (`kept_outside`), in a top loader or a
+//   box; `location` then says where.
 //
-// A graded card is in a slab, which doesn't fit in a pocket, so it's never in
-// a binder. As a Pokémon's first card it still takes the slot (it counts for
-// the Pokémon), but its pocket stays empty, and a loose card fills it.
+// The card in a Pokémon's slot can be kept outside too: it still holds the
+// slot (the Pokémon is caught), but its pocket stays empty, and a loose card
+// added later starts there. A graded card is always outside: a slab doesn't
+// fit in a pocket.
 export type Placement = "slot" | "none" | `binder:${number}`;
 
 type Choice = { value: Placement; label: string };
 
 const placeLabel = (place: BinderPlace) =>
   `${place.binder.name} · page ${place.page}, pocket ${place.pocket}`;
+
+const NONE: Choice = { value: "none", label: "Not in a binder" };
 
 // A free binder's first empty pocket, leaving out the card being placed.
 function nextPocket(binder: Binder, cards: OwnedCard[], cardId: number | null) {
@@ -35,8 +39,8 @@ export const binderIdOf = (placement: Placement) =>
 
 // The choices for a card of this Pokémon, and the one to start from: where it
 // is now, or for a new card where it belongs. The Pokédex pocket for a
-// Pokémon's first card (or when the card in its slot is graded), else the
-// first free binder (duplicates and other regions' cards), else none.
+// Pokémon's first card (or when the card in its slot is kept outside), else
+// the first free binder (duplicates and other regions' cards), else none.
 export function placementChoices(
   card: OwnedCard | null,
   pokemonId: number,
@@ -46,7 +50,7 @@ export function placementChoices(
 ): {
   items: Choice[];
   initial: Placement;
-  hint: string | null;
+  hint: (placement: Placement) => string | null;
   // Whether "slot" takes the pocket over from another card (set_featured_card)
   // rather than getting it by itself.
   swapsSlot: boolean;
@@ -56,28 +60,34 @@ export function placementChoices(
   const holder = cards.find(
     (other) => other.pokemon_id === pokemonId && other.is_featured && other.id !== card?.id,
   );
+  // This card has the slot, or gets it as the Pokémon's first.
+  const ownsSlot = slot && !holder ? slot : null;
+  const stillCounts = ownsSlot
+    ? `It still counts for this Pokémon, and its pocket in ${ownsSlot.binder.name} stays free for a loose card.`
+    : null;
 
   if (graded) {
     return {
-      items: [{ value: "none", label: "Not in a binder" }],
+      items: [NONE],
       initial: "none",
-      hint:
-        slot && !holder
-          ? `A slab doesn't fit in a pocket. It still counts for this Pokémon, and its pocket in ${slot.binder.name} stays free for a loose card.`
+      hint: () =>
+        stillCounts
+          ? `A slab doesn't fit in a pocket. ${stillCounts}`
           : "A slab doesn't fit in a binder pocket.",
       swapsSlot: false,
     };
   }
 
-  // The slot card, or the Pokémon's first: its Pokédex pocket is the only
-  // place for it.
-  if (slot && !holder) {
+  if (ownsSlot) {
     return {
-      items: [{ value: "slot", label: placeLabel(slot) }],
-      initial: "slot",
-      hint: holdsSlot
-        ? "It's this Pokémon's card in the Pokédex. To take it out, put another of its cards in the slot."
-        : "A Pokémon's first card goes in its pocket in the Pokédex binder.",
+      items: [{ value: "slot", label: placeLabel(ownsSlot) }, NONE],
+      initial: holdsSlot && card?.kept_outside ? "none" : "slot",
+      hint: (placement) =>
+        placement === "none"
+          ? `Kept outside the binder, in a top loader say. ${stillCounts}`
+          : holdsSlot
+            ? "It's this Pokémon's card in the Pokédex. Another of its cards can take the slot from its own page."
+            : "A Pokémon's first card goes in its pocket in the Pokédex binder.",
       swapsSlot: false,
     };
   }
@@ -88,15 +98,15 @@ export function placementChoices(
     const place = freePlace(binder, here || nextPocket(binder, cards, card?.id ?? null));
     return { value: `binder:${binder.id!}`, label: placeLabel(place) };
   });
-  // The card in the slot is graded, so the pocket is empty: a loose card
+  // The card in the slot is kept outside, so the pocket is empty: a loose card
   // belongs there first.
-  const pocketFree = Boolean(holder?.grading_company);
+  const pocketFree = Boolean(holder?.kept_outside);
   if (slot && pocketFree) {
     items.unshift({ value: "slot", label: placeLabel(slot) });
   } else if (slot) {
     items.push({ value: "slot", label: `${placeLabel(slot)}, instead of the card there` });
   }
-  items.push({ value: "none", label: "Not in a binder" });
+  items.push(NONE);
 
   const current: Placement | null = card
     ? card.binder_id
@@ -108,9 +118,9 @@ export function placementChoices(
   return {
     items,
     initial,
-    hint:
+    hint: () =>
       slot && pocketFree
-        ? "Its Pokédex pocket is empty: the card in its slot is graded, so it's kept outside the binder."
+        ? "Its Pokédex pocket is empty: the card in its slot is kept outside the binder."
         : null,
     swapsSlot: true,
   };

@@ -39,7 +39,14 @@ const CardFacts: React.FC<CardFactsProps> = ({ card, place }) => {
     ["Language", LANGUAGE_LABELS[card.language as CardLanguage]],
     ["Grade", gradeLabel(card) ?? "Not graded"],
     ["Got it", card.acquired_on ? formatDate(card.acquired_on) : "—"],
-    ["Kept in", place ? <BinderPlaceLink place={place} /> : (card.location ?? "—")],
+    [
+      "Kept in",
+      place ? (
+        <BinderPlaceLink place={place} />
+      ) : (
+        (card.location ?? (card.kept_outside ? "Outside the binders" : "—"))
+      ),
+    ],
     ["Added", formatDate(card.created_at!.slice(0, 10))],
   ];
 
@@ -47,9 +54,9 @@ const CardFacts: React.FC<CardFactsProps> = ({ card, place }) => {
     <Flex direction="column" gap="3" minWidth="0">
       {card.is_featured && (
         <Flex>
-          {/* A slab isn't in the pocket, but it still counts. */}
+          {/* Kept outside, it isn't in the pocket, but it still counts. */}
           <Badge variant="primary">
-            {card.grading_company
+            {card.kept_outside
               ? `${card.pokemon_name}'s card in the Pokédex`
               : `In ${card.pokemon_name}'s Pokédex slot`}
           </Badge>
