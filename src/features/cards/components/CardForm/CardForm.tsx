@@ -267,18 +267,21 @@ const CardForm: React.FC<CardFormProps> = ({ card, pokemonId: initialPokemonId, 
         <Field label="Version">
           <Select value={finish} onValueChange={setFinish} items={finishItems} required />
         </Field>
-        <Field label="Condition">
-          <Select value={condition} onValueChange={setCondition} items={CONDITION_ITEMS} required />
-        </Field>
         <Field label="Language">
           <Select value={language} onValueChange={setLanguage} items={LANGUAGE_ITEMS} required />
         </Field>
         <Field label="Grading">
           <Select value={grading} onValueChange={setGrading} items={GRADING_ITEMS} required />
         </Field>
-        {grading !== "none" && (
+        {/* A graded card's grade says how it is; its condition is still saved
+            (the column needs one) but not asked for or shown. */}
+        {grading !== "none" ? (
           <Field label="Grade">
             <Input value={grade} onChange={(e) => setGrade(e.target.value)} placeholder="10" required />
+          </Field>
+        ) : (
+          <Field label="Condition">
+            <Select value={condition} onValueChange={setCondition} items={CONDITION_ITEMS} required />
           </Field>
         )}
         <Field label="Got it on">

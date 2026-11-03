@@ -32,7 +32,10 @@ const CardFacts: React.FC<CardFactsProps> = ({ card, place }) => {
     ["Rarity", card.rarity ?? "—"],
     ["Illustrator", card.illustrator ?? "—"],
     ["Version", version],
-    ["Condition", CONDITION_LABELS[card.condition as CardCondition]],
+    // A graded card's grade stands in for its condition.
+    ...(card.grading_company
+      ? []
+      : [["Condition", CONDITION_LABELS[card.condition as CardCondition]] as [string, string]]),
     ["Language", LANGUAGE_LABELS[card.language as CardLanguage]],
     ["Grade", gradeLabel(card) ?? "Not graded"],
     ["Got it", card.acquired_on ? formatDate(card.acquired_on) : "—"],
