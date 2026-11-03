@@ -1,0 +1,14 @@
+.card {
+  padding: 1rem 1.25rem;
+  background: var(--bg-item-primary);
+  border: var(--bw-primary) solid var(--border-clr-primary);
+  border-radius: var(--br-sm);
+}
+
+.positive {
+  color: var(--clr-success);
+}
+
+.negative {
+  color: var(--clr-error);
+}

@@ -1,0 +1,68 @@
+@use "../../../utils/scss/utils/breakpoints";
+@use "../../../utils/scss/utils/dialog";
+
+.backdrop {
+  @include dialog.backdrop;
+}
+
+// The popup itself never scrolls; the body does, so the title and close
+// button stay put on long forms.
+.popup {
+  @include dialog.popup(32rem);
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 2rem);
+  padding: 1.75rem 1.75rem 1.5rem;
+
+  @media #{breakpoints.$mobile-landscape} {
+    max-height: calc(100dvh - 1.5rem);
+    padding: 1.25rem 1.25rem max(1.25rem, env(safe-area-inset-bottom));
+  }
+}
+
+.title {
+  margin: 0;
+  font-size: var(--fs-h4);
+  font-weight: var(--fw-semi-bold);
+}
+
+.description {
+  margin: 0.25rem 0 0;
+  font-size: var(--fs-sm);
+  color: var(--text-clr-secondary);
+}
+
+.close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: var(--tap-size);
+  height: var(--tap-size);
+  margin: -0.5rem -0.5rem 0 0;
+  border: 0;
+  border-radius: var(--br-sm);
+  background: transparent;
+  color: var(--text-clr-secondary);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--text-clr);
+    background: var(--bg-item-hover);
+  }
+}
+
+// Bleeds into the side padding so the scrollbar sits at the card edge
+// instead of squeezing the content.
+.body {
+  min-height: 0;
+  margin: 1.25rem -1.75rem 0;
+  padding: 0 1.75rem 0.25rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  @media #{breakpoints.$mobile-landscape} {
+    margin: 1rem -1.25rem 0;
+    padding: 0 1.25rem 0.25rem;
+  }
+}

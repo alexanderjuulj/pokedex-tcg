@@ -1,0 +1,12 @@
+node_modules/
+dist/
+dist-server/
+data/
+# The Pokémon artwork (The Pokémon Company's): pnpm pokemon:art downloads it.
+public/pokemon/
+.env
+.env.local
+*.tsbuildinfo
+.DS_Store
+# The project notes for working on it with Claude Code stay on this machine.
+CLAUDE.md

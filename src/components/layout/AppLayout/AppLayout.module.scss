@@ -1,0 +1,25 @@
+// The page's gray: on a phone the body is white, for the status bar
+// (_global.scss).
+.shell {
+  background: var(--bg-body-primary);
+}
+
+.scrollRoot {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.viewport {
+  height: 100%;
+  outline: 0;
+  overscroll-behavior: contain;
+}
+
+.content {
+  width: 100%;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  // Room to scroll the last row clear of the home indicator / toasts.
+  padding-bottom: max(3rem, calc(env(safe-area-inset-bottom) + 2rem));
+}

@@ -1,0 +1,18 @@
+.logo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+
+  &__none {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &_ball {
+    height: 70%;
+    color: var(--border-clr-input);
+  }
+}

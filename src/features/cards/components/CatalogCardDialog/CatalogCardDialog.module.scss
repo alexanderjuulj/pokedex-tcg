@@ -1,0 +1,6 @@
+// As large as the sheet allows: the full width on a phone, while the details
+// and the button still fit below.
+.scan {
+  width: min(100%, 24rem, 52dvh);
+  margin-inline: auto;
+}

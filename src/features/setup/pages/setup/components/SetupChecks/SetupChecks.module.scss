@@ -1,0 +1,42 @@
+.checks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.check {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: "icon title" "icon body";
+  column-gap: 0.75rem;
+  row-gap: 0.125rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--br-sm);
+  background: var(--bg-success);
+
+  &__todo {
+    background: var(--bg-warning);
+  }
+
+  &_icon {
+    grid-area: icon;
+    color: var(--clr-success);
+
+    .check__todo & {
+      color: var(--clr-warning);
+    }
+  }
+
+  &_title {
+    grid-area: title;
+    font-weight: var(--fw-bold);
+  }
+
+  &_body {
+    grid-area: body;
+    font-size: var(--fs-sm);
+  }
+}

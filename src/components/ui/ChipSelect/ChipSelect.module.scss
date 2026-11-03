@@ -1,0 +1,41 @@
+// Label matches Field.module.scss so the control sits in forms like a field.
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+
+  &_label {
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semi-bold);
+    color: var(--text-clr);
+  }
+}
+
+// The whole chip removes the item: a bigger target than a small ×.
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: var(--tap-size);
+  padding: 0.375rem 0.75rem 0.375rem 1rem;
+  border: var(--bw-primary) solid var(--border-clr-input);
+  border-radius: var(--br-rounded);
+  background: var(--bg-item-secondary);
+  color: var(--text-clr);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  touch-action: manipulation;
+
+  svg {
+    color: var(--text-clr-secondary);
+  }
+
+  &:hover {
+    background: var(--bg-error);
+    border-color: color-mix(in srgb, var(--clr-error) 30%, transparent);
+
+    svg {
+      color: var(--clr-error);
+    }
+  }
+}

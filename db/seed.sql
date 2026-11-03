@@ -1,0 +1,3 @@
+-- Example rows for a fresh development database (pnpm db:seed). There are
+-- none: the Pokémon come with the migrations and the catalogue with
+-- `pnpm catalog:pull`. Never run it against production data.

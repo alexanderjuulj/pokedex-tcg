@@ -1,0 +1,40 @@
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  padding: 1.75rem 1.5rem 0;
+  background: var(--bg-item-primary);
+  border: var(--bw-primary) solid var(--border-clr-primary);
+  border-radius: var(--br-base);
+  box-shadow: var(--shadow-primary);
+
+  // Sticks to the bottom of the screen while a long step (the regions)
+  // scrolls, so Next is always in reach.
+  &_footer {
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin: 0 -1.5rem;
+    padding: 1rem 1.5rem max(1.25rem, env(safe-area-inset-bottom));
+    border-top: var(--bw-primary) solid var(--border-clr-primary);
+    border-radius: 0 0 var(--br-base) var(--br-base);
+    background: var(--bg-item-primary);
+  }
+
+  &_status {
+    flex: 1 1 12rem;
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-bold);
+  }
+
+  &_actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-left: auto;
+  }
+}

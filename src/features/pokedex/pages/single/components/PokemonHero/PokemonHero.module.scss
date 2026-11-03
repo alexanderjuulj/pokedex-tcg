@@ -1,0 +1,121 @@
+// No stacking context or overflow clip of its own: the artwork has to paint
+// above the sheet that follows (PokemonSingle.module.scss), while the
+// background stays below it.
+.hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem 0;
+  border-radius: var(--br-large) var(--br-large) 0 0;
+  background: var(--type-clr);
+  color: var(--type-on);
+
+  // Edge to edge on a phone, under the app header.
+  @media (max-width: 47.99em) {
+    margin: -1rem -1rem 0;
+    border-radius: 0;
+  }
+
+  // Positioned, so they paint in order above the watermark.
+  > * {
+    position: relative;
+  }
+
+  &_deco {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  &_ball {
+    position: absolute;
+    top: -2.5rem;
+    right: -2.5rem;
+    width: 13rem;
+    height: 13rem;
+    color: rgb(255 255 255 / 0.16);
+  }
+
+  &_back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--tap-size);
+    height: var(--tap-size);
+    margin-left: -0.625rem;
+    padding: 0;
+    border: none;
+    border-radius: var(--br-rounded);
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    touch-action: manipulation;
+
+    &:active {
+      background: rgb(255 255 255 / 0.2);
+    }
+  }
+
+  &_heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  &_name {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  &_number {
+    font-size: var(--fs-h5);
+    font-weight: var(--fw-bold);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &_meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  &_types {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+
+  &_missing {
+    padding: 0.125rem 0.625rem;
+    border: var(--bw-primary) solid currentColor;
+    border-radius: var(--br-rounded);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semi-bold);
+  }
+
+  &_category {
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-medium);
+    text-align: right;
+  }
+
+  &_art {
+    z-index: 2;
+    width: min(15rem, 62vw);
+
+    @media (min-width: 48em) {
+      width: 17rem;
+    }
+    aspect-ratio: 1;
+    // Overlaps the sheet below, as in the reference design.
+    margin: 0 auto -3rem;
+  }
+}

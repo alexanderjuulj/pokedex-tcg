@@ -1,0 +1,45 @@
+.search {
+  position: relative;
+
+  // Nested, so it outranks Input's own padding whatever the stylesheet order.
+  .input {
+    padding-left: 2.75rem;
+    padding-right: var(--tap-size);
+
+    // Our clear button replaces the browser's.
+    &::-webkit-search-cancel-button {
+      -webkit-appearance: none;
+    }
+  }
+}
+
+.icon {
+  position: absolute;
+  top: 50%;
+  left: 0.875rem;
+  transform: translateY(-50%);
+  color: var(--text-clr-secondary);
+  pointer-events: none;
+}
+
+.clear {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-size);
+  height: var(--tap-size);
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-clr-secondary);
+  cursor: pointer;
+  touch-action: manipulation;
+
+  &:hover {
+    color: var(--text-clr);
+  }
+}

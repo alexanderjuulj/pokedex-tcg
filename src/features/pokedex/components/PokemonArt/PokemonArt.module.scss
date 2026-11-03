@@ -1,0 +1,17 @@
+.art {
+  display: block;
+  object-fit: contain;
+  user-select: none;
+
+  &__silhouette {
+    filter: brightness(0);
+    opacity: 0.11;
+  }
+
+  // The Poké Ball standing in for missing artwork. `scale`, not padding: a
+  // percentage padding follows the parent's width, which swallows small art.
+  &__missing {
+    scale: 0.6;
+    opacity: 0.15;
+  }
+}

@@ -1,0 +1,122 @@
+// Mobile-only header: the Sidebar takes over from the `sm` breakpoint
+// (min-width: 48em / 768px, matching the layoutProps `sm` value).
+.header {
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: max(0.5rem, env(safe-area-inset-top)) 0.75rem 0.5rem 1rem;
+  background: var(--bg-item-primary);
+  border-bottom: var(--bw-primary) solid var(--border-clr-primary);
+
+  @media (min-width: 48em) {
+    display: none;
+  }
+}
+
+.icon_button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  padding: 0;
+  border: none;
+  border-radius: var(--br-sm);
+  background: transparent;
+  color: var(--text-clr);
+  cursor: pointer;
+  touch-action: manipulation;
+
+  &:active {
+    background: var(--bg-item-hover);
+  }
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  // Above the header (z-index: 20) so the open drawer covers it.
+  z-index: 40;
+  min-height: 100dvh;
+  background: var(--bg-backdrop);
+  opacity: calc(1 - var(--drawer-swipe-progress));
+  transition-property: opacity;
+  transition-duration: 450ms;
+  transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+
+  // iOS 26+: ensure the backdrop covers the entire visible viewport.
+  @supports (-webkit-touch-callout: none) {
+    position: absolute;
+  }
+
+  &[data-starting-style],
+  &[data-ending-style] {
+    opacity: 0;
+  }
+
+  &[data-swiping] {
+    transition-duration: 0ms;
+  }
+
+  &[data-ending-style] {
+    transition-duration: calc(var(--drawer-swipe-strength) * 400ms);
+  }
+}
+
+.viewport {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.popup {
+  // Extra width hanging off the right edge so rubber-band over-swipes to the
+  // left never reveal a gap behind the drawer.
+  --bleed: 3rem;
+
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: calc(18.75rem + var(--bleed));
+  max-width: calc(100vw - 3rem + var(--bleed));
+  height: 100%;
+  margin-right: calc(-1 * var(--bleed));
+  padding-top: env(safe-area-inset-top);
+  padding-right: var(--bleed);
+  border-left: var(--bw-primary) solid var(--border-clr-primary);
+  background: var(--bg-item-primary);
+  outline: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: auto;
+  transform: translateX(var(--drawer-swipe-movement-x));
+  transition: transform 450ms cubic-bezier(0.32, 0.72, 0, 1);
+  will-change: transform;
+
+  &[data-starting-style],
+  &[data-ending-style] {
+    // Slide fully offscreen: the popup already hangs --bleed past the right
+    // edge, so travel its width minus the bleed (plus the 1px border).
+    transform: translateX(calc(100% - var(--bleed) + 2px));
+  }
+
+  &[data-swiping] {
+    transition-duration: 0ms;
+    user-select: none;
+  }
+
+  &[data-ending-style] {
+    transition-duration: calc(var(--drawer-swipe-strength) * 400ms);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop,
+  .popup {
+    transition-duration: 0ms;
+  }
+}

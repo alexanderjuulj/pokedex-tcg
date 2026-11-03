@@ -1,0 +1,12 @@
+[Unit]
+Description=pokedex-tcg database backup
+
+[Service]
+Type=oneshot
+User=deploy
+Group=deploy
+WorkingDirectory=/var/www/pokedex-tcg/current
+EnvironmentFile=/var/www/pokedex-tcg/shared/.env
+ExecStart=/opt/node22/bin/node --disable-warning=ExperimentalWarning /var/www/pokedex-tcg/current/dist-server/cli.mjs backup
+# Keep 30 days of copies (nightly ones and the ones each deploy makes).
+ExecStart=/usr/bin/find /var/www/pokedex-tcg/shared/data/backups -name "pokedex-tcg-*.sqlite" -mtime +30 -delete

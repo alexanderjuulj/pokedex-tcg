@@ -1,0 +1,37 @@
+// Doubled class so it beats the child's own background/radius (e.g. Badge
+// variants) regardless of stylesheet order.
+.skeleton.skeleton {
+  // Hug the content inside grid cells without overriding fixed sizes.
+  justify-self: start;
+  max-width: 100%;
+  border-radius: 0.375rem;
+  background: var(--bg-neutral);
+  color: transparent !important;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  pointer-events: none;
+  user-select: none;
+  animation: skeleton-pulse 1.4s ease-in-out infinite alternate;
+
+  // Hide nested content (icons, images) so only the block shows.
+  > * {
+    visibility: hidden;
+  }
+}
+
+// Explicit `from` so the pulse doesn't start at the child's own background.
+@keyframes skeleton-pulse {
+  from {
+    background: var(--bg-neutral);
+  }
+
+  to {
+    background: var(--bg-item-hover);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton.skeleton {
+    animation: none;
+  }
+}

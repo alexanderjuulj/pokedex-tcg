@@ -1,0 +1,27 @@
+.wrap {
+  display: flex;
+  justify-content: center;
+  padding: 2.5rem;
+
+  &__fullscreen {
+    // dvh, not vh: in a home-screen app 100vh includes the status bar.
+    min-height: 100dvh;
+    align-items: center;
+    padding: 0;
+  }
+}
+
+.spinner {
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 3px solid var(--bg-neutral);
+  border-top-color: var(--clr-primary);
+  border-radius: var(--br-rounded);
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

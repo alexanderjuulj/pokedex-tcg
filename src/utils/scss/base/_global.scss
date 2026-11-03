@@ -1,0 +1,60 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  color-scheme: light;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  // No grey flash on every tap in iOS/Android browsers.
+  -webkit-tap-highlight-color: transparent;
+}
+
+// In an iPhone home-screen app, iOS colors the strip behind the status bar
+// with the body's background (not theme-color, the html background or the
+// manifest). So on a phone it's the Header's white, and the app paints the
+// page's gray itself (AppLayout, the login page). From 48em the Sidebar
+// replaces the Header, and the strip is the page's gray.
+html,
+body {
+  background: var(--bg-item-primary);
+
+  @media (min-width: 48em) {
+    background: var(--bg-body-primary);
+  }
+}
+
+body {
+  margin: 0;
+  // dvh, not vh: in a home-screen app 100vh includes the status bar, so the
+  // page could scroll that far and leave the Header stuck under it.
+  min-height: 100dvh;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+// Keyboard focus is visible everywhere; pointer focus isn't.
+:focus-visible {
+  outline: 2px solid var(--clr-primary);
+  outline-offset: 2px;
+}

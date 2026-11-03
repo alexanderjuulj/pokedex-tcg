@@ -1,0 +1,80 @@
+// The Poké Ball: its red is the accent, its black the text and its white the
+// page, with white surfaces on top. The grays are neutral, so the Pokémon
+// type colors carry the color. Flat on purpose: no gradients or glows, and
+// shadows only where something floats (menus, dialogs, toasts).
+:root {
+  --clr-primary: #ee1515;
+  --clr-primary-hover: #cc1010;
+  --clr-on-primary: #ffffff;
+
+  // Signal colors, dark enough to pass AA as text on white.
+  --clr-success: #15803d;
+  --clr-warning: #b45309;
+  --clr-error: #b91c1c;
+  --clr-info: #1d4ed8;
+
+  // Tinted fills behind the signal colors (badges, active nav, hovers).
+  --bg-primary: #fde8e8;
+  --bg-success: #dcfce7;
+  --bg-warning: #fef3c7;
+  --bg-error: #fee2e2;
+  --bg-info: #dbeafe;
+  --bg-neutral: #e8e8ea;
+
+  /* Borders */
+  --border-clr-primary: #e2e2e4;
+  // Form controls need a firmer edge than card borders.
+  --border-clr-input: #c8c8cd;
+
+  /* Background Colors */
+  --bg-body-primary: #f0f0f0;
+
+  // Items could be a card, sidemenu, etc.
+  --bg-item-primary: #ffffff;
+  --bg-item-secondary: #ebebed;
+  --bg-item-hover: #e3e3e6;
+
+  // Input
+  --bg-input-primary: #ffffff;
+
+  --bg-backdrop: rgb(34 34 36 / 0.4);
+
+  --shadow-primary: 0 1px 2px rgb(34 34 36 / 0.06);
+  --shadow-popover: 0 8px 24px rgb(34 34 36 / 0.12);
+}
+
+// The Pokémon types, after the pastels of the reference design but deep
+// enough for bold white text (3:1 or better). Electric is too light for
+// white, so it gets dark text. Anything with data-type="<type>" gets
+// --type-clr (the fill) and --type-on (text on it).
+$types: (
+  normal: #8f8e80,
+  fire: #ec5b5b,
+  water: #4192e6,
+  electric: #f5c542,
+  grass: #2a9d7c,
+  ice: #34a0ab,
+  fighting: #c95b4a,
+  poison: #9a62b8,
+  ground: #b5893f,
+  flying: #7d8be0,
+  psychic: #e25d8d,
+  bug: #7f9d1a,
+  rock: #a08c56,
+  ghost: #6f5f9e,
+  dragon: #7b5fd6,
+  dark: #6b5a4e,
+  steel: #7a8ca0,
+  fairy: #c96aa8,
+);
+
+@each $type, $color in $types {
+  [data-type="#{$type}"] {
+    --type-clr: #{$color};
+    --type-on: #ffffff;
+  }
+}
+
+[data-type="electric"] {
+  --type-on: #3d2c00;
+}

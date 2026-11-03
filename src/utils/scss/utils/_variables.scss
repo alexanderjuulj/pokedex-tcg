@@ -1,0 +1,24 @@
+:root {
+  /* Borders Radius */
+  --br-xs: 0.5rem; /* Extra small*/
+  --br-sm: 0.875rem; /* Small items */
+  --br-base: 1.5rem; /* Default */
+  --br-large: 2rem; /* Large */
+  --br-rounded: 50rem; /* Circle */
+
+  /* Border Width */
+  --bw-primary: 0.0625rem; /* 1px */
+  --bw-secondary: 0.125rem; /* 2px */
+
+  // Minimum touch target: the app is used one-handed on a phone or tablet.
+  --tap-size: 2.75rem; /* 44px */
+
+  // Self-hosted via @fontsource-variable/figtree (imported in main.tsx), so
+  // the app needs no internet on the devices.
+  --font-primary:
+    "Figtree Variable", system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --content-max-width: 72rem;
+}

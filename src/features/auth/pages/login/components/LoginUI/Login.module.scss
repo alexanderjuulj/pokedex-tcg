@@ -1,0 +1,25 @@
+// Its own gray: on a phone the body is white, for the status bar
+// (_global.scss).
+.login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  background: var(--bg-body-primary);
+  padding: max(1.5rem, env(safe-area-inset-top)) 1rem
+    max(1.5rem, env(safe-area-inset-bottom));
+
+  &_inner {
+    width: 100%;
+    max-width: 24rem;
+  }
+
+  &_card {
+    width: 100%;
+    padding: 1.75rem 1.5rem;
+    background: var(--bg-item-primary);
+    border: var(--bw-primary) solid var(--border-clr-primary);
+    border-radius: var(--br-base);
+    box-shadow: var(--shadow-primary);
+  }
+}

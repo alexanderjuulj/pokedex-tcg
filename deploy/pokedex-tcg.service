@@ -1,0 +1,30 @@
+[Unit]
+Description=pokedex-tcg API
+After=network.target
+
+[Service]
+Type=simple
+User=deploy
+Group=deploy
+WorkingDirectory=/var/www/pokedex-tcg/current
+# Node 22 from /opt/node22: the app needs node:sqlite (22.13+), and the
+# server's own Node stays as it is for the other sites.
+ExecStart=/opt/node22/bin/node --disable-warning=ExperimentalWarning /var/www/pokedex-tcg/current/dist-server/index.mjs
+Restart=on-failure
+RestartSec=10
+
+# API_PORT and DATA_DIR
+EnvironmentFile=/var/www/pokedex-tcg/shared/.env
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=pokedex-tcg
+
+# Security hardening: everything read-only except the database folder
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/var/www/pokedex-tcg/shared/data
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,161 @@
+// Bottom stack (right on desktop, centered on phones), collapsed behind the newest toast until hovered or
+// focused (Base UI sets data-expanded). Positioning follows the Base UI
+// toast CSS variables: --toast-index, --toast-offset-y, --toast-height,
+// --toast-frontmost-height and the swipe movement vars.
+.viewport {
+  position: fixed;
+  z-index: 30;
+  right: 1rem;
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  width: min(24rem, calc(100vw - 2rem));
+  outline: none;
+}
+
+.toast {
+  --gap: 0.75rem;
+  --peek: 0.5rem;
+  --scale: calc(max(0, 1 - (var(--toast-index) * 0.05)));
+  --shrink: calc(1 - var(--scale));
+  --height: var(--toast-frontmost-height, var(--toast-height));
+  --offset-y: calc(
+    var(--toast-offset-y) * -1 + (var(--toast-index) * var(--gap) * -1) +
+      var(--toast-swipe-movement-y)
+  );
+
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  margin: 0 auto;
+  z-index: calc(1000 - var(--toast-index));
+  box-sizing: border-box;
+  height: var(--height);
+  padding: 0.875rem 0.875rem 0.875rem 1rem;
+  background: var(--bg-item-primary);
+  border: var(--bw-primary) solid var(--border-clr-primary);
+  border-radius: var(--br-sm);
+  box-shadow: var(--shadow-popover);
+  user-select: none;
+  transform-origin: bottom center;
+  transform: translateX(var(--toast-swipe-movement-x))
+    translateY(
+      calc(
+        var(--toast-swipe-movement-y) - (var(--toast-index) * var(--peek)) -
+          (var(--shrink) * var(--height))
+      )
+    )
+    scale(var(--scale));
+  transition:
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.4s,
+    height 0.15s;
+
+  // Invisible bridge between stacked toasts so hover doesn't flicker when
+  // the pointer crosses the gap.
+  &::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    height: calc(var(--gap) + 1px);
+  }
+
+  &[data-expanded] {
+    height: var(--toast-height);
+    transform: translateX(var(--toast-swipe-movement-x))
+      translateY(var(--offset-y));
+  }
+
+  &[data-starting-style],
+  &[data-ending-style] {
+    transform: translateY(150%);
+  }
+
+  &[data-limited] {
+    opacity: 0;
+  }
+
+  &[data-ending-style] {
+    opacity: 0;
+
+    &[data-swipe-direction="right"] {
+      transform: translateX(calc(var(--toast-swipe-movement-x) + 150%))
+        translateY(var(--offset-y));
+    }
+
+    &[data-swipe-direction="down"] {
+      transform: translateY(calc(var(--toast-swipe-movement-y) + 150%));
+    }
+  }
+
+  &[data-type="success"] .icon {
+    color: var(--clr-success);
+  }
+
+  &[data-type="error"] .icon {
+    color: var(--clr-error);
+  }
+}
+
+.content {
+  overflow: hidden;
+  transition: opacity 0.25s;
+
+  // Only the front toast's content shows while collapsed.
+  &[data-behind] {
+    opacity: 0;
+  }
+
+  &[data-expanded] {
+    opacity: 1;
+  }
+}
+
+.icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-top: 0.0625rem;
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-semi-bold);
+}
+
+.description {
+  margin: 0.125rem 0 0;
+  font-size: var(--fs-sm);
+  color: var(--text-clr-secondary);
+  overflow-wrap: anywhere;
+
+  &:empty {
+    display: none;
+  }
+}
+
+.close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin: -0.375rem -0.375rem 0 0;
+  border: 0;
+  border-radius: var(--br-xs);
+  background: transparent;
+  color: var(--text-clr-secondary);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--text-clr);
+    background: var(--bg-item-hover);
+  }
+}

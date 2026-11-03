@@ -1,0 +1,10 @@
+// Up to two lines: "Common · Illustration rare · Special illustration rare".
+.rarities {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semi-bold);
+  color: var(--text-clr);
+}

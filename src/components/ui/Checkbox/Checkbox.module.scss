@@ -1,0 +1,40 @@
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: var(--tap-size);
+  font-size: var(--fs-base);
+  cursor: pointer;
+}
+
+.checkbox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  background-color: var(--bg-input-primary);
+  border: var(--bw-secondary) solid var(--border-clr-input);
+  border-radius: 0.375rem;
+  outline: none;
+
+  &[data-checked] {
+    background-color: var(--clr-primary);
+    border-color: var(--clr-primary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--clr-primary);
+    outline-offset: 2px;
+  }
+}
+
+.indicator {
+  display: flex;
+  color: var(--clr-on-primary);
+
+  &[data-unchecked] {
+    display: none;
+  }
+}

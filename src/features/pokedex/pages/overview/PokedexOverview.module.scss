@@ -1,0 +1,28 @@
+// The regions beyond the goal: a row to swipe on a phone, four across from
+// 1024px.
+.more {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  > * {
+    flex: 0 0 11rem;
+    scroll-snap-align: start;
+  }
+
+  @media (min-width: 64em) {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    overflow: visible;
+
+    > * {
+      flex: none;
+    }
+  }
+}

@@ -1,0 +1,23 @@
+// Its own gray, like the login: on a phone the body is white, for the status
+// bar (_global.scss).
+.setup {
+  display: flex;
+  justify-content: center;
+  min-height: 100dvh;
+  background: var(--bg-body-primary);
+  padding: max(1.5rem, env(safe-area-inset-top)) 1rem 0;
+
+  &_inner {
+    width: 100%;
+    max-width: 40rem;
+  }
+}
+
+.tips {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: var(--fs-sm);
+}

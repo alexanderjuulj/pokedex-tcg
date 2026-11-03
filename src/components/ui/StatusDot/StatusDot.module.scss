@@ -1,0 +1,32 @@
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4375rem;
+
+  &_dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: var(--br-rounded);
+    flex-shrink: 0;
+
+    &__ok {
+      background: var(--clr-success);
+      box-shadow: 0 0 0 3px var(--bg-success);
+    }
+
+    &__down {
+      background: var(--clr-error);
+      box-shadow: 0 0 0 3px var(--bg-error);
+    }
+
+    &__unknown {
+      background: var(--text-clr-secondary);
+      box-shadow: 0 0 0 3px var(--bg-neutral);
+    }
+  }
+
+  &_label {
+    font-size: var(--fs-sm);
+    color: var(--text-clr-secondary);
+  }
+}

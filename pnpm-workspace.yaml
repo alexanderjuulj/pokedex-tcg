@@ -1,0 +1,10 @@
+# pnpm 11+ refuses to run dependency build scripts without an explicit
+# decision here (a fresh install exits 1 with ERR_PNPM_IGNORED_BUILDS).
+#
+# @parcel/watcher: pulled in by sass for `sass --watch`; Vite compiles SCSS
+# itself, so the native build is never needed.
+# esbuild: Vite's and tsx's bundler; the postinstall verifies/installs the
+# platform binary and must run.
+allowBuilds:
+  "@parcel/watcher": false
+  esbuild: true

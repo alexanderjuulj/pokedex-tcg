@@ -1,0 +1,18 @@
+.textarea {
+  padding: 0.75rem 0.875rem;
+  background-color: var(--bg-input-primary);
+  border: var(--bw-primary) solid var(--border-clr-input);
+  border-radius: var(--br-xs);
+  // 16px minimum, or iOS Safari zooms the page on focus.
+  font-size: var(--fs-base);
+  font-family: inherit;
+  line-height: var(--lh-deca);
+  width: 100%;
+  resize: vertical;
+
+  &:focus {
+    outline: none;
+    border-color: var(--clr-primary);
+    box-shadow: 0 0 0 1px var(--clr-primary);
+  }
+}

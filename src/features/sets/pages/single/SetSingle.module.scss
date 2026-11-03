@@ -1,0 +1,21 @@
+// The size of the headline beside it.
+.symbol {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border: var(--bw-primary) solid var(--border-clr-primary);
+  border-radius: var(--br-sm);
+  background: var(--bg-item-primary);
+
+  &_logo {
+    flex-shrink: 0;
+    width: 7.5rem;
+    height: 4rem;
+  }
+}

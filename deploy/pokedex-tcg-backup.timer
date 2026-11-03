@@ -1,0 +1,10 @@
+[Unit]
+Description=Nightly pokedex-tcg database backup
+
+[Timer]
+OnCalendar=*-*-* 03:30:00
+# Catch up after the server was down at 03:30.
+Persistent=true
+
+[Install]
+WantedBy=timers.target

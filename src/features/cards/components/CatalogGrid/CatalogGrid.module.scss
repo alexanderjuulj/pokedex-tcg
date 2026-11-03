@@ -1,0 +1,73 @@
+// Three across on a phone: a page of cards to scan, not to read.
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+  gap: 1rem 0.625rem;
+
+  &__muted {
+    opacity: 0.6;
+  }
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.0625rem;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+
+  &:active &_image {
+    transform: scale(0.96);
+  }
+
+  &_image {
+    position: relative;
+    margin-bottom: 0.25rem;
+    transition: transform 120ms ease-out;
+  }
+
+  &_owned {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.125rem;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    padding: 0 0.3125rem;
+    justify-content: center;
+    border-radius: var(--br-rounded);
+    background: var(--clr-success);
+    color: #ffffff;
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-bold);
+  }
+
+  &_title,
+  &_detail {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: var(--fs-xs);
+  }
+
+  &_title {
+    font-weight: var(--fw-semi-bold);
+    color: var(--text-clr);
+    white-space: nowrap;
+  }
+
+  // Up to two lines: "Special illustration rare · 231/182".
+  &_detail {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    color: var(--text-clr-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+}

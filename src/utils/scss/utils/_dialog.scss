@@ -1,0 +1,60 @@
+@use "breakpoints";
+
+// Shared surface for Base UI dialogs (AlertDialog, Dialog): dimmed backdrop
+// and a centered card. On phones the card becomes a bottom sheet, where the
+// buttons are within thumb reach.
+
+@mixin backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: var(--bg-backdrop);
+
+  &[data-starting-style],
+  &[data-ending-style] {
+    opacity: 0;
+  }
+  transition: opacity 0.15s ease;
+}
+
+// $width: card width from the small-tablet breakpoint up.
+@mixin popup($width: 26rem) {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 21;
+  width: min(#{$width}, calc(100vw - 2rem));
+  background: var(--bg-item-primary);
+  border: var(--bw-primary) solid var(--border-clr-primary);
+  border-radius: var(--br-base);
+  box-shadow: var(--shadow-popover);
+  outline: none;
+
+  &[data-starting-style],
+  &[data-ending-style] {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.97);
+  }
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+
+  @media #{breakpoints.$mobile-landscape} {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    transform: none;
+    border-bottom: 0;
+    border-radius: var(--br-base) var(--br-base) 0 0;
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+
+    &[data-starting-style],
+    &[data-ending-style] {
+      opacity: 1;
+      transform: translateY(100%);
+    }
+    transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+}
