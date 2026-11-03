@@ -16,6 +16,8 @@
   <a href="https://github.com/alexanderjuulj/pokedex-tcg/commits/main"><img src="https://img.shields.io/github/last-commit/alexanderjuulj/pokedex-tcg?color=222224" alt="Last commit"></a>
 </p>
 
+<img width="960" height="540" alt="readme-demo" src="https://github.com/user-attachments/assets/875cd9b9-e686-4cc4-a4a3-f357780673d7" />
+
 Pick the regions you collect: E.g Kanto and Johto. Every Pokémon starts as
 a gray silhouette and turns to color when you add a card of it, from any era
 of the card game. Each card keeps its details and its story: where it came
