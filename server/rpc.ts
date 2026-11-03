@@ -35,7 +35,8 @@ rpc.post("/set_featured_card", async (c) => {
     db.prepare("update cards set is_featured = 0 where pokemon_id = ? and is_featured = 1").run(
       card.pokemon_id,
     );
-    db.prepare("update cards set is_featured = 1 where id = ?").run(id);
+    // Into the slot is into its pocket, even from outside the binders.
+    db.prepare("update cards set is_featured = 1, kept_outside = 0 where id = ?").run(id);
   });
   return c.json({ id });
 });
@@ -86,14 +87,17 @@ rpc.post("/put_in_binder", async (c) => {
   if (binder.kind !== "free") throw new ApiError(400, `${binder.name} keeps its own order`);
   const card = db
     .prepare(
-      `select c.is_featured, exists (
+      `select c.is_featured, c.grading_company, exists (
          select 1 from binders b
          where b.kind = 'pokedex' and c.pokemon_id between b.first_pokemon_id and b.last_pokemon_id
        ) as in_pokedex_binder
        from cards c where c.id = ?`,
     )
-    .get(cardId) as { is_featured: number; in_pokedex_binder: number } | undefined;
+    .get(cardId) as
+    | { is_featured: number; grading_company: string | null; in_pokedex_binder: number }
+    | undefined;
   if (!card) throw new ApiError(404, `cards/${cardId} not found`);
+  if (card.grading_company) throw new ApiError(409, "A graded card's slab doesn't fit in a pocket");
   if (card.is_featured && card.in_pokedex_binder) {
     throw new ApiError(409, "This card is in its Pokémon's slot, in the Pokédex binder");
   }
@@ -108,7 +112,7 @@ rpc.post("/put_in_binder", async (c) => {
       ).map((row) => row.binder_pocket),
     );
     while (used.has(pocket)) pocket++;
-    db.prepare("update cards set binder_id = ?, binder_pocket = ? where id = ?").run(
+    db.prepare("update cards set binder_id = ?, binder_pocket = ?, kept_outside = 0 where id = ?").run(
       binderId,
       pocket,
       cardId,

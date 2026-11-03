@@ -157,7 +157,8 @@ const CardForm: React.FC<CardFormProps> = ({ card, pokemonId: initialPokemonId, 
       grading_company: graded ? grading : null,
       grade: graded ? emptyToNull(grade) : null,
       acquired_on: emptyToNull(acquiredOn),
-      // Where it is when it's in no binder.
+      // Kept outside the binders, and where.
+      kept_outside: placement === "none",
       location: placement === "none" ? emptyToNull(location) : null,
       notes: emptyToNull(notes),
       ...(!printed && {
@@ -243,9 +244,9 @@ const CardForm: React.FC<CardFormProps> = ({ card, pokemonId: initialPokemonId, 
             required
           />
         </Field>
-        {choices.hint && (
+        {choices.hint(placement) && (
           <Text size="2" color="gray">
-            {choices.hint}
+            {choices.hint(placement)}
           </Text>
         )}
       </Flex>
@@ -254,7 +255,7 @@ const CardForm: React.FC<CardFormProps> = ({ card, pokemonId: initialPokemonId, 
           <Input
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            placeholder={grading !== "none" ? "The slab box, a display case…" : "A deck box, the shoebox…"}
+            placeholder={grading !== "none" ? "The slab box, a display case…" : "A top loader, the shoebox…"}
           />
         </Field>
       )}

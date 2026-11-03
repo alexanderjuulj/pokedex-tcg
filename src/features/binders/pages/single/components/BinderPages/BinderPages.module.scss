@@ -90,7 +90,7 @@
     font-weight: var(--fw-semi-bold);
   }
 
-  &__graded {
+  &__outside {
     border: 2px dashed var(--border-clr-input);
   }
 
@@ -113,12 +113,12 @@
     font-variant-numeric: tabular-nums;
   }
 
-  // The graded card, faint: it isn't really here.
+  // The card kept outside, faint: it isn't really here.
   &_faded {
     opacity: 0.35;
   }
 
-  &_grade {
+  &_tag {
     position: absolute;
     bottom: 0.375rem;
     left: 50%;

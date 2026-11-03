@@ -107,6 +107,7 @@ export type Database = {
           updated_at: string;
           binder_id: number | null;
           binder_pocket: number | null;
+          kept_outside: boolean;
         };
         Insert: {
           id?: never;
@@ -129,6 +130,7 @@ export type Database = {
           updated_at?: string;
           binder_id?: number | null;
           binder_pocket?: number | null;
+          kept_outside?: boolean;
         };
         Update: {
           id?: never;
@@ -151,6 +153,7 @@ export type Database = {
           updated_at?: string;
           binder_id?: number | null;
           binder_pocket?: number | null;
+          kept_outside?: boolean;
         };
       };
       catalog_card_pokemon: {
@@ -307,6 +310,7 @@ export type Database = {
           is_featured: boolean | null;
           binder_id: number | null;
           binder_pocket: number | null;
+          kept_outside: boolean | null;
           created_at: string | null;
           updated_at: string | null;
         };
