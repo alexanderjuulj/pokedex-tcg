@@ -8,11 +8,15 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { formatDexNumber } from "@/lib/pokemon";
 import { cn } from "@/lib/utils";
 import { CardImage } from "@/features/cards/components";
+import { gradeLabel } from "@/features/cards/grading";
 import { PokemonArt } from "@/features/pokedex/components";
 import styles from "./BinderPages.module.scss";
 
 export type Pocket =
   | { kind: "card"; card: OwnedCard }
+  // A Pokédex binder's pocket whose card is graded: the slab is kept outside
+  // the binder, so the pocket is empty.
+  | { kind: "graded"; card: OwnedCard }
   // A Pokédex binder's pocket for a Pokémon not caught yet.
   | { kind: "pokemon"; pokemonId: number; name: string }
   // A free binder's empty pocket, and the one the next card goes in.
@@ -93,6 +97,24 @@ const BinderPages: React.FC<BinderPagesProps> = ({
               size="low"
               alt={pocket.card.name ?? ""}
             />
+          </Link>
+        );
+      case "graded":
+        return (
+          <Link
+            key={index}
+            to={`/cards/${pocket.card.id}`}
+            className={cn(className, styles.pocket__graded)}
+            title={`Graded, kept in ${pocket.card.location ?? "a slab"}`}
+          >
+            <CardImage
+              catalogCardId={pocket.card.catalog_card_id}
+              hasImage={pocket.card.has_image}
+              size="low"
+              alt={pocket.card.name ?? ""}
+              className={styles.pocket_faded}
+            />
+            <span className={styles.pocket_grade}>{gradeLabel(pocket.card)}</span>
           </Link>
         );
       case "pokemon":

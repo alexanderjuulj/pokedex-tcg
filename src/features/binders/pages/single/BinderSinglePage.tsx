@@ -22,7 +22,8 @@ import { pagesLabel, pokedexPages, pokedexSections } from "@/features/binders/la
 import type { BinderKind } from "@/features/binders/types";
 import { BinderPages, type Pocket } from "./components";
 
-// A Pokédex binder: each Pokémon's pocket holds the card in its slot.
+// A Pokédex binder: each Pokémon's pocket holds the card in its slot (unless
+// it's graded, and kept outside the binder).
 function pokedexPockets(binder: Binder, cards: OwnedCard[], names: Map<number, string>) {
   const slots = new Map(
     cards.filter((card) => card.is_featured).map((card) => [card.pokemon_id, card]),
@@ -31,9 +32,8 @@ function pokedexPockets(binder: Binder, cards: OwnedCard[], names: Map<number, s
     page.map((pokemonId): Pocket => {
       if (pokemonId === null) return { kind: "unused" };
       const card = slots.get(pokemonId);
-      return card
-        ? { kind: "card", card }
-        : { kind: "pokemon", pokemonId, name: names.get(pokemonId) ?? "" };
+      if (!card) return { kind: "pokemon", pokemonId, name: names.get(pokemonId) ?? "" };
+      return card.grading_company ? { kind: "graded", card } : { kind: "card", card };
     }),
   );
 }

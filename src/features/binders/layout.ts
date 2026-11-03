@@ -93,13 +93,17 @@ export const freePlace = (binder: Binder, binderPocket: number): BinderPlace => 
   pocket: ((binderPocket - 1) % binder.pockets_per_page!) + 1,
 });
 
-// Where a card is: the card in its Pokémon's slot sits in its Pokédex binder;
-// any other card in the free binder it was put in, if any.
+// Where a card is: the card in its Pokémon's slot sits in its Pokédex binder
+// (unless it's graded: a slab doesn't fit in a pocket); any other card in the
+// free binder it was put in, if any.
 export function cardPlace(
-  card: Pick<OwnedCard, "pokemon_id" | "is_featured" | "binder_id" | "binder_pocket">,
+  card: Pick<
+    OwnedCard,
+    "pokemon_id" | "is_featured" | "grading_company" | "binder_id" | "binder_pocket"
+  >,
   binders: Binder[],
 ): BinderPlace | null {
-  if (card.is_featured) {
+  if (card.is_featured && !card.grading_company) {
     const place = pokemonPlace(card.pokemon_id!, binders);
     if (place) return place;
   }

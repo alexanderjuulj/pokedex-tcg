@@ -56,13 +56,15 @@ const CardSinglePage: React.FC = () => {
   const data = card.data;
   const allBinders = binders.data ?? [];
   // The card in its Pokémon's slot stays in its Pokédex binder; any other can
-  // go in a free binder, or move to another.
+  // go in a free binder, or move to another. A graded card goes in none: a
+  // slab doesn't fit in a pocket.
+  const graded = Boolean(data.grading_company);
   const inSlot = Boolean(data.is_featured && pokemonPlace(data.pokemon_id!, allBinders));
   const binderItems = inSlot
     ? []
     : [
         ...allBinders
-          .filter((binder) => binder.kind === "free" && binder.id !== data.binder_id)
+          .filter((binder) => binder.kind === "free" && binder.id !== data.binder_id && !graded)
           .map((binder) => ({
             label: `Put in ${binder.name}`,
             onSelect: () =>
@@ -98,7 +100,7 @@ const CardSinglePage: React.FC = () => {
         actions={
           <DropdownMenu
             items={[
-              ...(data.is_featured
+              ...(data.is_featured || graded
                 ? []
                 : [{ label: "Put in the Pokédex slot", onSelect: () => setFeatured.mutate(data.id!) }]),
               ...binderItems,

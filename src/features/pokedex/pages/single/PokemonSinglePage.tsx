@@ -76,7 +76,9 @@ const PokemonSinglePage: React.FC = () => {
                   {/* Where its card sits, or will. */}
                   {place && (
                     <Text size="2" color="gray">
-                      {owned.length ? "In the binder: " : "Its pocket: "}
+                      {owned.some((card) => card.is_featured && !card.grading_company)
+                        ? "In the binder: "
+                        : "Its pocket: "}
                       <BinderPlaceLink place={place} />
                     </Text>
                   )}

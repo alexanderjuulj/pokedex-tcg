@@ -90,6 +90,10 @@
     font-weight: var(--fw-semi-bold);
   }
 
+  &__graded {
+    border: 2px dashed var(--border-clr-input);
+  }
+
   &__unused {
     background: none;
     border: var(--bw-primary) dashed var(--border-clr-primary);
@@ -107,6 +111,28 @@
     font-size: var(--fs-xs);
     font-weight: var(--fw-bold);
     font-variant-numeric: tabular-nums;
+  }
+
+  // The graded card, faint: it isn't really here.
+  &_faded {
+    opacity: 0.35;
+  }
+
+  &_grade {
+    position: absolute;
+    bottom: 0.375rem;
+    left: 50%;
+    max-width: calc(100% - 0.75rem);
+    overflow: hidden;
+    padding: 0.125rem 0.5rem;
+    border-radius: var(--br-rounded);
+    background: var(--bg-item-primary);
+    color: var(--text-clr);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-bold);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    translate: -50% 0;
   }
 
   &_art {

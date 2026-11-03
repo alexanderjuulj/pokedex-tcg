@@ -6,18 +6,9 @@ import { formatCardNumber } from "@/lib/pokemon";
 import { formatDate } from "@/lib/utils";
 import { BinderPlaceLink } from "@/features/binders/components";
 import type { BinderPlace } from "@/features/binders/layout";
-import {
-  CONDITION_LABELS,
-  FINISH_LABELS,
-  GRADING_LABELS,
-  LANGUAGE_LABELS,
-} from "@/features/cards/constants";
-import type {
-  CardCondition,
-  CardFinish,
-  CardLanguage,
-  GradingCompany,
-} from "@/features/cards/types";
+import { CONDITION_LABELS, FINISH_LABELS, LANGUAGE_LABELS } from "@/features/cards/constants";
+import { gradeLabel } from "@/features/cards/grading";
+import type { CardCondition, CardFinish, CardLanguage } from "@/features/cards/types";
 import styles from "../../CardSingle.module.scss";
 
 type CardFactsProps = {
@@ -43,12 +34,7 @@ const CardFacts: React.FC<CardFactsProps> = ({ card, place }) => {
     ["Version", version],
     ["Condition", CONDITION_LABELS[card.condition as CardCondition]],
     ["Language", LANGUAGE_LABELS[card.language as CardLanguage]],
-    [
-      "Grade",
-      card.grading_company
-        ? `${GRADING_LABELS[card.grading_company as GradingCompany]} ${card.grade}`
-        : "Not graded",
-    ],
+    ["Grade", gradeLabel(card) ?? "Not graded"],
     ["Got it", card.acquired_on ? formatDate(card.acquired_on) : "—"],
     ["Kept in", place ? <BinderPlaceLink place={place} /> : (card.location ?? "—")],
     ["Added", formatDate(card.created_at!.slice(0, 10))],
@@ -58,7 +44,12 @@ const CardFacts: React.FC<CardFactsProps> = ({ card, place }) => {
     <Flex direction="column" gap="3" minWidth="0">
       {card.is_featured && (
         <Flex>
-          <Badge variant="primary">In {card.pokemon_name}'s Pokédex slot</Badge>
+          {/* A slab isn't in the pocket, but it still counts. */}
+          <Badge variant="primary">
+            {card.grading_company
+              ? `${card.pokemon_name}'s card in the Pokédex`
+              : `In ${card.pokemon_name}'s Pokédex slot`}
+          </Badge>
         </Flex>
       )}
       <div className={styles.single_facts}>

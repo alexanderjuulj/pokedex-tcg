@@ -115,13 +115,19 @@ const CardForm: React.FC<CardFormProps> = ({ card, pokemonId: initialPokemonId, 
   const [error, setError] = useState<string | null>(null);
 
   // Which binder it goes in. Until one is picked (or when the pick no longer
-  // fits, after "Counts for" changes), where it is or belongs.
+  // fits, after "Counts for" or "Grading" changes), where it is or belongs.
   const binders = useBinders();
   const owned = useOwnedCards();
   const setFeatured = useSetFeaturedCard();
   const putInBinder = usePutInBinder();
   const [chosen, setChosen] = useState<Placement | null>(null);
-  const choices = placementChoices(card, Number(pokemonId), binders.data ?? [], owned.data ?? []);
+  const choices = placementChoices(
+    card,
+    Number(pokemonId),
+    grading !== "none",
+    binders.data ?? [],
+    owned.data ?? [],
+  );
   const placement =
     chosen && choices.items.some((item) => item.value === chosen) ? chosen : choices.initial;
 
@@ -248,7 +254,7 @@ const CardForm: React.FC<CardFormProps> = ({ card, pokemonId: initialPokemonId, 
           <Input
             value={location}
             onChange={(e) => setLocation(e.target.value)}
-            placeholder="A deck box, the shoebox…"
+            placeholder={grading !== "none" ? "The slab box, a display case…" : "A deck box, the shoebox…"}
           />
         </Field>
       )}

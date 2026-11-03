@@ -80,8 +80,10 @@ and nightly backups. After that, every update is `pnpm deploy:server`.
 - **Adding a card:** find its Pokémon (or its set), tap the printed card you
   have, and fill in the details. The form says which binder and pocket it
   goes in: a Pokémon's first card goes in its Pokédex pocket, a duplicate in
-  your free binder, and you can change it. Cards the catalogue doesn't know
-  (other prints, jumbo cards) can be entered by hand.
+  your free binder, and you can change it. A graded card's slab doesn't fit
+  in a pocket, so it's kept outside the binders, and its Pokédex pocket stays
+  free for a loose card. Cards the catalogue doesn't know (other prints,
+  jumbo cards) can be entered by hand.
 - **Sets:** every set, with how many of the Pokémon you still need are in it,
   to see which packs are worth opening.
 
