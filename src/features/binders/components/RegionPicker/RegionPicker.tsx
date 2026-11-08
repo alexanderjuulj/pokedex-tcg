@@ -1,5 +1,5 @@
 import type React from "react";
-import { RegionCard } from "@/features/pokedex/components";
+import { GroupCard } from "@/features/pokedex/components";
 import { REGIONS } from "@/features/pokedex/constants";
 import type { Region } from "@/features/pokedex/types";
 import styles from "./RegionPicker.module.scss";
@@ -17,9 +17,12 @@ const RegionPicker: React.FC<RegionPickerProps> = ({ value, onChange, taken = []
     {REGIONS.map((region) => {
       const isTaken = taken.includes(region.value);
       return (
-        <RegionCard
+        <GroupCard
           key={region.value}
-          region={region}
+          label={region.label}
+          eyebrow={region.generation}
+          artwork={region.starters}
+          total={region.last - region.first + 1}
           active={value.includes(region.value)}
           disabled={isTaken}
           detail={isTaken ? "In a binder" : undefined}

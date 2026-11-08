@@ -93,6 +93,22 @@
     gap: 0.375rem;
   }
 
+  // Solid white, so it stands apart from the see-through type pills on every
+  // type color.
+  &_class {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.125rem 0.625rem 0.125rem 0.5rem;
+    border-radius: var(--br-rounded);
+    background: var(--bg-item-primary);
+    color: var(--text-clr);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semi-bold);
+    line-height: var(--lh-deca);
+    white-space: nowrap;
+  }
+
   &_missing {
     padding: 0.125rem 0.625rem;
     border: var(--bw-primary) solid currentColor;

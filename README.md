@@ -307,6 +307,10 @@ Then start the app again.
     entered by hand.
 - **Sets** show how many of the Pokémon you still need are in each one, to
   help you pick which packs to open.
+- **Legends & starters** on the Pokédex gathers the legendary, mythical,
+  Ultra Beast, Paradox and starter Pokémon from every region. A Pokémon's
+  page says which one it is and what that means, for the card you pulled
+  and didn't recognise.
 - **More regions** can be added any time: Binders → Collect more regions.
 
 ## For developers

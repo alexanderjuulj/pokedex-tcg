@@ -31,3 +31,5 @@ export type Region =
   | "galar"
   | "hisui"
   | "paldea";
+
+export type PokemonClass = "legendary" | "mythical" | "ultra_beast" | "paradox" | "starter";

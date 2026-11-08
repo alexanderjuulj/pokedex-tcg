@@ -233,6 +233,7 @@ export type Database = {
           entry: string;
           evolves_from_id: number | null;
           evolution_method: string | null;
+          class: string | null;
         };
         Insert: {
           id?: never;
@@ -246,6 +247,7 @@ export type Database = {
           entry: string;
           evolves_from_id?: number | null;
           evolution_method?: string | null;
+          class?: string | null;
         };
         Update: {
           id?: never;
@@ -259,6 +261,7 @@ export type Database = {
           entry?: string;
           evolves_from_id?: number | null;
           evolution_method?: string | null;
+          class?: string | null;
         };
       };
     };
@@ -351,6 +354,7 @@ export type Database = {
           entry: string | null;
           evolves_from_id: number | null;
           evolution_method: string | null;
+          class: string | null;
           card_count: number | null;
         };
       };
