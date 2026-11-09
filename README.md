@@ -307,6 +307,12 @@ Then start the app again.
     entered by hand.
 - **Sets** show how many of the Pokémon you still need are in each one, to
   help you pick which packs to open.
+- **Pack odds:** a Pokémon's Sets tab says about how many packs of each
+  set it takes to pull it ("About 1 in 9 packs"). It also names the set
+  with the best odds, and the best one from the last two years, which a
+  shop is more likely to have. It's an estimate from how many commons and
+  uncommons each set has. Rarer cards aren't counted, since nobody
+  publishes their odds.
 - **Legends & starters** on the Pokédex gathers the legendary, mythical,
   Ultra Beast, Paradox and starter Pokémon from every region. A Pokémon's
   page says which one it is and what that means, for the card you pulled

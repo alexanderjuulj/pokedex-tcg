@@ -16,7 +16,8 @@ import {
 // once per machine (the Mac, the server). Running it again only fetches
 // what's missing: new sets, images not on this machine's disk (an
 // interrupted run, or a database copied over), and scans TCGdex has added
-// since.
+// since. It also counts each set's commons, uncommons and rares, for the
+// pack odds.
 //
 // pokemontcg.io's open data fills TCGdex's gaps: scans of older and special
 // cards, logos, and the set symbols (TCGdex lists them, but its server for
@@ -37,6 +38,14 @@ const PTCG_SETS: Record<string, string> = {
   exu: "ex10",
 };
 const CONCURRENCY = 12;
+// The rarities the pack odds count, as TCGdex names them, by the card_sets
+// column that counts them. TCGdex spells holo rares both ways.
+const RARITY_COUNTS = {
+  common_count: ["Common"],
+  uncommon_count: ["Uncommon"],
+  rare_count: ["Rare", "Holo Rare", "Rare Holo"],
+};
+type RarityColumn = keyof typeof RARITY_COUNTS;
 
 type SetBrief = { id: string; logo?: string };
 type SetDetail = {
@@ -57,6 +66,7 @@ type CardDetail = {
   set: { id: string };
   variants?: { normal?: boolean; holo?: boolean; reverse?: boolean; firstEdition?: boolean };
 };
+type CardListing = { id: string; localId: string };
 type PtcgSet = {
   id: string;
   name: string;
@@ -252,6 +262,46 @@ async function pullCards(db: DatabaseSync, sets: Map<string, number>, skipped: s
   });
 }
 
+// How many commons, uncommons and rares every set has, Trainers and Energy
+// included, for the pack odds. A listing per rarity, so every run counts
+// again. Only the main run counts ("4", not "RC4": those come in their own
+// slot), and no basic Energy, which has its own slot too.
+async function countRarities(db: DatabaseSync) {
+  const basicEnergy = new Set(
+    (await getJson<CardListing[]>(`${API}/cards?category=eq:Energy&energyType=eq:Normal`))
+      .map((card) => card.id),
+  );
+  const counts = new Map<string, Record<RarityColumn, number>>();
+  for (const [column, rarities] of Object.entries(RARITY_COUNTS) as [RarityColumn, string[]][]) {
+    for (const rarity of rarities) {
+      const cards = await getJson<CardListing[]>(
+        `${API}/cards?rarity=eq:${encodeURIComponent(rarity)}`,
+      );
+      for (const card of cards) {
+        if (basicEnergy.has(card.id) || !/^\d+$/.test(card.localId)) continue;
+        // Card ids are "<set id>-<number>", and set ids can hold dashes.
+        if (!card.id.endsWith(`-${card.localId}`)) continue;
+        const setId = card.id.slice(0, -card.localId.length - 1);
+        const set = counts.get(setId) ?? { common_count: 0, uncommon_count: 0, rare_count: 0 };
+        set[column]++;
+        counts.set(setId, set);
+      }
+    }
+  }
+
+  const sets = db.prepare("select tcgdex_id from card_sets").all() as { tcgdex_id: string }[];
+  const update = db.prepare(
+    "update card_sets set common_count = ?, uncommon_count = ?, rare_count = ? where tcgdex_id = ?",
+  );
+  transaction(db, () => {
+    for (const { tcgdex_id } of sets) {
+      const set = counts.get(tcgdex_id);
+      update.run(set?.common_count ?? 0, set?.uncommon_count ?? 0, set?.rare_count ?? 0, tcgdex_id);
+    }
+  });
+  console.log(`rarities: counted for ${counts.size} sets`);
+}
+
 // pokemontcg.io's sets by TCGdex set id, and its cards per set (fetched when
 // first asked for).
 type Ptcg = {
@@ -436,6 +486,7 @@ export async function pullCatalog() {
   try {
     const { sets, skipped } = await pullSets(db);
     await pullCards(db, sets, skipped);
+    await countRarities(db);
     const ptcg = await loadPtcg(db);
     await pullImages(db, ptcg);
     await pullSetImages(db, ptcg);
