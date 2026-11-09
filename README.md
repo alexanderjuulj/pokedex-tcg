@@ -224,7 +224,10 @@ cd pokedex-tcg
 pnpm catalog:pull
 ```
 
-A new set can take a few days after its release to appear here.
+A new set can take a few days after its release to appear here, and its
+cards' details (which versions were printed, the illustrators) keep filling
+in for a few weeks. Each pull checks the sets of the last 90 days again, so
+pulling early is fine.
 
 **A new version of the app.** Stop the app first (Control C), then:
 

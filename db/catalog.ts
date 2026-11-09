@@ -16,8 +16,9 @@ import {
 // once per machine (the Mac, the server). Running it again only fetches
 // what's missing: new sets, images not on this machine's disk (an
 // interrupted run, or a database copied over), and scans TCGdex has added
-// since. It also counts each set's commons, uncommons and rares, for the
-// pack odds.
+// since. The sets of the last 90 days are the exception: TCGdex keeps
+// filling in their cards for weeks, so each run fetches those again. It
+// also counts each set's commons, uncommons and rares, for the pack odds.
 //
 // pokemontcg.io's open data fills TCGdex's gaps: scans of older and special
 // cards, logos, and the set symbols (TCGdex lists them, but its server for
@@ -38,6 +39,9 @@ const PTCG_SETS: Record<string, string> = {
   exu: "ex10",
 };
 const CONCURRENCY = 12;
+// How long after its release a set's cards are fetched again on every run,
+// while TCGdex fills them in.
+const RECHECK_DAYS = 90;
 // The rarities the pack odds count, as TCGdex names them, by the card_sets
 // column that counts them. TCGdex spells holo rares both ways.
 const RARITY_COUNTS = {
@@ -160,8 +164,7 @@ async function pullSets(db: DatabaseSync) {
         set.name,
         set.serie.name,
         set.releaseDate?.slice(0, 10) ?? null,
-        // Promos print no set total ("SWSH050", not "50/53").
-        isPromo(set.name) ? null : (set.cardCount.official ?? null),
+        setCardCount(set),
       ) as { id: number };
       known.set(set.id, id);
     }
@@ -182,6 +185,28 @@ async function pullSets(db: DatabaseSync) {
   });
   return { sets: known, skipped };
 }
+
+// A card's catalog_cards columns, from tcgdex_id to image_url.
+function cardFields(card: CardDetail) {
+  const variants = card.variants ?? {};
+  return [
+    card.id,
+    card.name,
+    card.localId,
+    // "None" for the cards without one.
+    card.rarity && card.rarity !== "None" ? card.rarity : null,
+    card.illustrator ?? null,
+    variants.normal ? 1 : 0,
+    variants.holo ? 1 : 0,
+    variants.reverse ? 1 : 0,
+    variants.firstEdition ? 1 : 0,
+    card.image ?? null,
+  ] as const;
+}
+
+// Promos print no set total ("SWSH050", not "50/53").
+const setCardCount = (set: SetDetail) =>
+  isPromo(set.name) ? null : (set.cardCount.official ?? null);
 
 async function pullCards(db: DatabaseSync, sets: Map<string, number>, skipped: string[]) {
   // Which Pokémon each card shows, from one listing per Pokédex number.
@@ -210,7 +235,7 @@ async function pullCards(db: DatabaseSync, sets: Map<string, number>, skipped: s
   );
 
   const insertCard = db.prepare(
-    `insert into catalog_cards (tcgdex_id, card_set_id, name, local_id, rarity, illustrator,
+    `insert into catalog_cards (card_set_id, tcgdex_id, name, local_id, rarity, illustrator,
        has_normal, has_holo, has_reverse, has_first_edition, image_url)
      values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   );
@@ -223,21 +248,7 @@ async function pullCards(db: DatabaseSync, sets: Map<string, number>, skipped: s
     for (const card of fresh) {
       const setId = sets.get(card.set.id);
       if (setId === undefined) throw new Error(`${card.id}: unknown set ${card.set.id}`);
-      const variants = card.variants ?? {};
-      insertCard.run(
-        card.id,
-        setId,
-        card.name,
-        card.localId,
-        // "None" for the cards without one.
-        card.rarity && card.rarity !== "None" ? card.rarity : null,
-        card.illustrator ?? null,
-        variants.normal ? 1 : 0,
-        variants.holo ? 1 : 0,
-        variants.reverse ? 1 : 0,
-        variants.firstEdition ? 1 : 0,
-        card.image ?? null,
-      );
+      insertCard.run(setId, ...cardFields(card));
       added++;
     }
     // Every listing, not just the new cards: a later Pokédex number can
@@ -260,6 +271,52 @@ async function pullCards(db: DatabaseSync, sets: Map<string, number>, skipped: s
   transaction(db, () => {
     for (const card of rechecked) if (card?.image) setImage.run(card.image, card.id);
   });
+}
+
+// The recent sets and their cards, fetched again: TCGdex lists a new set
+// before it's finished (every card in normal only, no illustrators), and a
+// row is otherwise written once, when it's new.
+async function recheckRecent(db: DatabaseSync) {
+  const since = `-${RECHECK_DAYS} days`;
+  const sets = db
+    .prepare("select tcgdex_id from card_sets where released_on >= date('now', ?)")
+    .all(since) as { tcgdex_id: string }[];
+  const cards = db
+    .prepare(
+      `select cc.tcgdex_id from catalog_cards cc join card_sets s on s.id = cc.card_set_id
+       where s.released_on >= date('now', ?)`,
+    )
+    .all(since) as { tcgdex_id: string }[];
+  const setDetails = await eachLimited("recent sets", sets, (set) =>
+    findJson<SetDetail>(`${API}/sets/${encodeURIComponent(set.tcgdex_id)}`),
+  );
+  const cardDetails = await eachLimited("recent cards", cards, (card) =>
+    findJson<CardDetail>(`${API}/cards/${encodeURIComponent(card.tcgdex_id)}`),
+  );
+
+  // Gaps keep what's there: a date or scan TCGdex drops isn't lost.
+  const updateSet = db.prepare(
+    `update card_sets set name = ?, released_on = coalesce(?, released_on),
+       card_count = coalesce(?, card_count)
+     where tcgdex_id = ?`,
+  );
+  const updateCard = db.prepare(
+    `update catalog_cards set name = ?, local_id = ?, rarity = ?, illustrator = ?,
+       has_normal = ?, has_holo = ?, has_reverse = ?, has_first_edition = ?,
+       image_url = coalesce(?, image_url)
+     where tcgdex_id = ?`,
+  );
+  transaction(db, () => {
+    for (const set of setDetails) {
+      if (set) updateSet.run(set.name, set.releaseDate?.slice(0, 10) ?? null, setCardCount(set), set.id);
+    }
+    for (const card of cardDetails) {
+      if (!card) continue;
+      const [id, ...fields] = cardFields(card);
+      updateCard.run(...fields, id);
+    }
+  });
+  console.log(`recent: ${cards.length} cards of ${sets.length} sets checked again`);
 }
 
 // How many commons, uncommons and rares every set has, Trainers and Energy
@@ -486,6 +543,7 @@ export async function pullCatalog() {
   try {
     const { sets, skipped } = await pullSets(db);
     await pullCards(db, sets, skipped);
+    await recheckRecent(db);
     await countRarities(db);
     const ptcg = await loadPtcg(db);
     await pullImages(db, ptcg);
