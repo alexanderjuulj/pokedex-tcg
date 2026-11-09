@@ -4,6 +4,7 @@ import { PokeBall } from "@/components/ui";
 import type { Pokemon } from "@/hooks/queries";
 import { formatDexNumber } from "@/lib/pokemon";
 import { PokemonArt, TypePill } from "@/features/pokedex/components";
+import { CLASSES } from "@/features/pokedex/constants";
 import type { PokemonType } from "@/features/pokedex/types";
 import styles from "./PokemonHero.module.scss";
 
@@ -19,6 +20,7 @@ const PokemonHero: React.FC<PokemonHeroProps> = ({ pokemon }) => {
     Boolean,
   ) as PokemonType[];
   const caught = (pokemon.card_count ?? 0) > 0;
+  const pokemonClass = CLASSES.find((candidate) => candidate.value === pokemon.class);
 
   return (
     <section className={styles.hero} data-type={pokemon.primary_type}>
@@ -42,6 +44,12 @@ const PokemonHero: React.FC<PokemonHeroProps> = ({ pokemon }) => {
           {types.map((type) => (
             <TypePill key={type} type={type} variant="onColor" />
           ))}
+          {pokemonClass && (
+            <span className={styles.hero_class}>
+              <pokemonClass.icon size={14} strokeWidth={2.25} aria-hidden />
+              {pokemonClass.label}
+            </span>
+          )}
           {!caught && <span className={styles.hero_missing}>Not caught yet</span>}
         </span>
         <span className={styles.hero_category}>{pokemon.category}</span>

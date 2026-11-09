@@ -59,6 +59,9 @@ export type Database = {
           has_logo: boolean;
           in_boosters: boolean;
           has_symbol: boolean;
+          common_count: number | null;
+          uncommon_count: number | null;
+          rare_count: number | null;
         };
         Insert: {
           id?: never;
@@ -71,6 +74,9 @@ export type Database = {
           has_logo?: boolean;
           in_boosters?: boolean;
           has_symbol?: boolean;
+          common_count?: number | null;
+          uncommon_count?: number | null;
+          rare_count?: number | null;
         };
         Update: {
           id?: never;
@@ -83,6 +89,9 @@ export type Database = {
           has_logo?: boolean;
           in_boosters?: boolean;
           has_symbol?: boolean;
+          common_count?: number | null;
+          uncommon_count?: number | null;
+          rare_count?: number | null;
         };
       };
       cards: {
@@ -233,6 +242,7 @@ export type Database = {
           entry: string;
           evolves_from_id: number | null;
           evolution_method: string | null;
+          class: string | null;
         };
         Insert: {
           id?: never;
@@ -246,6 +256,7 @@ export type Database = {
           entry: string;
           evolves_from_id?: number | null;
           evolution_method?: string | null;
+          class?: string | null;
         };
         Update: {
           id?: never;
@@ -259,6 +270,7 @@ export type Database = {
           entry?: string;
           evolves_from_id?: number | null;
           evolution_method?: string | null;
+          class?: string | null;
         };
       };
     };
@@ -351,6 +363,7 @@ export type Database = {
           entry: string | null;
           evolves_from_id: number | null;
           evolution_method: string | null;
+          class: string | null;
           card_count: number | null;
         };
       };
@@ -365,6 +378,9 @@ export type Database = {
           in_boosters: boolean | null;
           has_logo: boolean | null;
           has_symbol: boolean | null;
+          common_count: number | null;
+          uncommon_count: number | null;
+          rare_count: number | null;
           pokemon_count: number | null;
           missing_count: number | null;
         };

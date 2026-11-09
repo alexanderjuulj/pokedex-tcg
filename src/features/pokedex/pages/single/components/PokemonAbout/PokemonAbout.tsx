@@ -1,11 +1,11 @@
 import type React from "react";
 import { Link } from "react-router";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronRight } from "lucide-react";
 import { Flex, Text } from "@/components/ui";
 import type { Pokemon } from "@/hooks/queries";
 import { formatHeight, formatWeight } from "@/lib/pokemon";
 import { PokemonArt } from "@/features/pokedex/components";
-import { REGIONS } from "@/features/pokedex/constants";
+import { CLASSES, REGIONS } from "@/features/pokedex/constants";
 import styles from "./PokemonAbout.module.scss";
 
 type PokemonAboutProps = {
@@ -14,8 +14,8 @@ type PokemonAboutProps = {
   pokedex: Pokemon[];
 };
 
-// Every step of the Pokémon's family within Gen 1–2, from the first stage
-// down, branches included (Eevee has five).
+// Every step of the Pokémon's family, from the first stage down, branches
+// included (Eevee has eight).
 function evolutionSteps(pokemon: Pokemon, pokedex: Pokemon[]) {
   const byId = new Map(pokedex.map((entry) => [entry.id!, entry]));
   let root = pokemon;
@@ -46,6 +46,7 @@ const PokemonAbout: React.FC<PokemonAboutProps> = ({ pokemon, pokedex }) => {
     (candidate) => pokemon.id! >= candidate.first && pokemon.id! <= candidate.last,
   )!;
   const steps = evolutionSteps(pokemon, pokedex);
+  const pokemonClass = CLASSES.find((candidate) => candidate.value === pokemon.class);
   const facts: [string, string][] = [
     ["Category", pokemon.category ?? "—"],
     ["Height", formatHeight(pokemon.height_dm!)],
@@ -56,6 +57,19 @@ const PokemonAbout: React.FC<PokemonAboutProps> = ({ pokemon, pokedex }) => {
   return (
     <Flex direction="column" gap="5">
       <p className={styles.entry}>{pokemon.entry}</p>
+      {pokemonClass && (
+        <Link to={`/pokedex?class=${pokemonClass.value}`} className={styles.class}>
+          <pokemonClass.icon size={22} aria-hidden className={styles.class_icon} />
+          <span className={styles.class_text}>
+            <span className={styles.class_label}>{pokemonClass.label}</span>
+            <span>{pokemonClass.about}</span>
+            <span className={styles.class_more}>
+              See all {pokedex.filter((entry) => entry.class === pokemonClass.value).length}
+            </span>
+          </span>
+          <ChevronRight size={20} aria-hidden className={styles.class_chevron} />
+        </Link>
+      )}
       <dl className={styles.facts}>
         {facts.map(([label, value]) => (
           <div key={label} className={styles.facts_row}>
@@ -81,7 +95,7 @@ const PokemonAbout: React.FC<PokemonAboutProps> = ({ pokemon, pokedex }) => {
           ))
         ) : (
           <Text size="2" color="gray">
-            {pokemon.name} doesn't evolve in Generations I and II.
+            {pokemon.name} doesn't evolve.
           </Text>
         )}
       </Flex>

@@ -1,5 +1,5 @@
-// The regions beyond the goal: a row to swipe on a phone, four across from
-// 1024px.
+// The regions beyond the goal, and the classes: a row to swipe on a phone,
+// four (the classes: five) across from 1024px.
 .more {
   display: flex;
   gap: 0.75rem;
@@ -23,6 +23,12 @@
 
     > * {
       flex: none;
+    }
+  }
+
+  &__classes {
+    @media (min-width: 64em) {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
     }
   }
 }

@@ -1,5 +1,6 @@
 import type React from "react";
 import { useState } from "react";
+import { useSearchParams } from "react-router";
 import {
   EmptyState,
   Flex,
@@ -13,16 +14,14 @@ import { PageHeader, PageLayout } from "@/components/layout";
 import { usePokedex, type Pokemon } from "@/hooks/queries";
 import { useTabParam } from "@/hooks/useTabParam";
 import { matchesPokemon } from "@/lib/pokemon";
-import { fold } from "@/lib/utils";
-import { RegionCard } from "@/features/pokedex/components";
-import { REGIONS } from "@/features/pokedex/constants";
+import { cn, fold } from "@/lib/utils";
+import { GroupCard } from "@/features/pokedex/components";
+import { CLASSES, REGIONS } from "@/features/pokedex/constants";
 import { useGoal } from "@/features/pokedex/hooks";
 import { PokedexGrid } from "./components";
 import styles from "./PokedexOverview.module.scss";
 
 const TABS = ["all", "caught", "missing"];
-// "goal", the default, is every region with a Pokédex binder together.
-const REGION_VALUES = ["goal", ...REGIONS.map((region) => region.value)];
 
 const isCaught = (pokemon: Pokemon) => (pokemon.card_count ?? 0) > 0;
 const inRange = (pokemon: Pokemon, range: { first: number; last: number }) =>
@@ -32,8 +31,27 @@ const PokedexOverviewPage: React.FC = () => {
   const { data, isLoading, error } = usePokedex();
   const goal = useGoal();
   const [tab, setTab] = useTabParam(TABS);
-  const [region, setRegion] = useTabParam(REGION_VALUES, "goal", "region");
+  const [params, setParams] = useSearchParams();
   const [search, setSearch] = useState("");
+
+  // One filter at a time: a region (?region=) or a class (?class=). Without
+  // either, the goal: every region with a Pokédex binder.
+  const region = REGIONS.find((candidate) => candidate.value === params.get("region"));
+  const pokemonClass = region
+    ? undefined
+    : CLASSES.find((candidate) => candidate.value === params.get("class"));
+  // Tapping the active one again goes back to the goal.
+  const filterBy = (param: "region" | "class", value: string, active: boolean) =>
+    setParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+        next.delete("region");
+        next.delete("class");
+        if (!active) next.set(param, value);
+        return next;
+      },
+      { replace: true },
+    );
 
   const all = data ?? [];
   const collecting = all.filter((pokemon) => goal.inGoal(pokemon.id!));
@@ -69,36 +87,74 @@ const PokedexOverviewPage: React.FC = () => {
     );
   }
 
-  const selected = REGIONS.find((candidate) => candidate.value === region);
   const query = fold(search.trim());
-  // Without a region, the goal; a search then looks through every region.
-  const base = selected
-    ? all.filter((pokemon) => inRange(pokemon, selected))
-    : query
-      ? all
-      : collecting;
+  // Without a filter, the goal; a search then looks through every region.
+  const base = region
+    ? all.filter((pokemon) => inRange(pokemon, region))
+    : pokemonClass
+      ? all.filter((pokemon) => pokemon.class === pokemonClass.value)
+      : query
+        ? all
+        : collecting;
   const shown = base.filter(
     (pokemon) => !query || matchesPokemon(pokemon.id!, pokemon.name ?? "", query),
   );
   const caught = shown.filter(isCaught);
   const missing = shown.filter((pokemon) => !isCaught(pokemon));
   const regionCard = (candidate: (typeof REGIONS)[number]) => (
-    <RegionCard
+    <GroupCard
       key={candidate.value}
-      region={candidate}
+      label={candidate.label}
+      eyebrow={candidate.generation}
+      artwork={candidate.starters}
+      total={candidate.last - candidate.first + 1}
       caught={all.filter((pokemon) => isCaught(pokemon) && inRange(pokemon, candidate)).length}
-      active={candidate.value === region}
-      onSelect={() => setRegion(candidate.value === region ? "goal" : candidate.value)}
+      active={candidate === region}
+      onSelect={() => filterBy("region", candidate.value, candidate === region)}
     />
   );
-  const grid = (pokemon: Pokemon[], emptyMessage: string) =>
-    pokemon.length ? (
-      <PokedexGrid pokemon={pokemon} />
-    ) : (
-      <EmptyState
-        message={query ? `No Pokémon here matches "${search.trim()}".` : emptyMessage}
+  const classCard = (candidate: (typeof CLASSES)[number]) => {
+    const members = all.filter((pokemon) => pokemon.class === candidate.value);
+    return (
+      <GroupCard
+        key={candidate.value}
+        label={candidate.plural}
+        artwork={candidate.artwork}
+        total={members.length}
+        caught={members.filter(isCaught).length}
+        active={candidate === pokemonClass}
+        onSelect={() => filterBy("class", candidate.value, candidate === pokemonClass)}
       />
     );
+  };
+  const grid = (pokemon: Pokemon[], emptyMessage: string) => {
+    if (!pokemon.length) {
+      return (
+        <EmptyState
+          message={query ? `No Pokémon here matches "${search.trim()}".` : emptyMessage}
+        />
+      );
+    }
+    if (!pokemonClass) return <PokedexGrid pokemon={pokemon} />;
+    // A class spans the regions, so each region gets its own heading.
+    return (
+      <Flex direction="column" gap="5">
+        {REGIONS.map((candidate) => {
+          const inRegion = pokemon.filter((entry) => inRange(entry, candidate));
+          return (
+            inRegion.length > 0 && (
+              <Flex key={candidate.value} direction="column" gap="2">
+                <Text size="2" weight="bold" color="gray">
+                  {candidate.label}
+                </Text>
+                <PokedexGrid pokemon={inRegion} />
+              </Flex>
+            )
+          );
+        })}
+      </Flex>
+    );
+  };
 
   return (
     <PageLayout>
@@ -114,7 +170,21 @@ const PokedexOverviewPage: React.FC = () => {
           <div className={styles.more}>{goal.others.map(regionCard)}</div>
         </Flex>
       )}
+      <Flex direction="column" gap="2">
+        <Text size="2" weight="bold" color="gray">
+          Legends & starters
+        </Text>
+        <div className={cn(styles.more, styles.more__classes)}>{CLASSES.map(classCard)}</div>
+      </Flex>
       <Flex direction="column" gap="3">
+        {pokemonClass && (
+          <Text size="2" color="gray">
+            <Text as="span" size="2" weight="bold" color="inherit">
+              {pokemonClass.plural}:
+            </Text>{" "}
+            {pokemonClass.about}
+          </Text>
+        )}
         <SearchInput
           value={search}
           onValueChange={setSearch}
