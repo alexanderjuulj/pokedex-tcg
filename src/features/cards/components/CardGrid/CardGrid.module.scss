@@ -41,6 +41,25 @@
     color: var(--clr-on-primary);
   }
 
+  // Gone: faded, with how it went on the scan.
+  &__gone &_image > :first-child {
+    opacity: 0.5;
+  }
+
+  &_gone {
+    position: absolute;
+    bottom: 0.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.125rem 0.5rem;
+    border-radius: var(--br-rounded);
+    background: var(--text-clr);
+    color: var(--text-clr-inverted);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semi-bold);
+    white-space: nowrap;
+  }
+
   &_name,
   &_set {
     overflow: hidden;

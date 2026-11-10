@@ -6,3 +6,5 @@ export { default as CardImage } from "./CardImage/CardImage";
 export { default as CatalogCardDialog } from "./CatalogCardDialog/CatalogCardDialog";
 export { default as CatalogGrid } from "./CatalogGrid/CatalogGrid";
 export type { CatalogCaption } from "./CatalogGrid/CatalogGrid";
+export { default as LetGoDialog } from "./LetGoDialog/LetGoDialog";
+export { default as LetGoForm } from "./LetGoForm/LetGoForm";

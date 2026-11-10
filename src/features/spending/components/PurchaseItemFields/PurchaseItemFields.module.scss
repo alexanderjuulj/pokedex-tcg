@@ -1,0 +1,10 @@
+// One line of the purchase form, in a box of its own.
+.line {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--bg-item-secondary);
+  border: var(--bw-primary) solid var(--border-clr-primary);
+  border-radius: var(--br-sm);
+}

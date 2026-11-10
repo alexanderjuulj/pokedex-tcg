@@ -1,16 +1,22 @@
 import type React from "react";
 import { useState } from "react";
-import { EmptyState, Flex, SearchInput, Spinner } from "@/components/ui";
+import { EmptyState, Flex, SearchInput, Spinner, Tabs } from "@/components/ui";
 import { PageHeader, PageLayout } from "@/components/layout";
-import { useOwnedCards } from "@/hooks/queries";
+import { useGoneCards, useOwnedCards, type Card } from "@/hooks/queries";
+import { useTabParam } from "@/hooks/useTabParam";
 import { fold } from "@/lib/utils";
 import { CardGrid } from "@/features/cards/components";
 
+const TABS = ["collection", "gone"];
+
 const CardsOverviewPage: React.FC = () => {
   const { data, isLoading, error } = useOwnedCards();
+  const gone = useGoneCards();
   const [search, setSearch] = useState("");
+  const [tab, setTab] = useTabParam(TABS);
 
   const cards = data ?? [];
+  const goneCards = gone.data ?? [];
   const pokemonCount = new Set(cards.map((card) => card.pokemon_id)).size;
   const header = (
     <PageHeader
@@ -23,7 +29,7 @@ const CardsOverviewPage: React.FC = () => {
     />
   );
 
-  if (isLoading) {
+  if (isLoading || gone.isLoading) {
     return (
       <PageLayout>
         {header}
@@ -32,16 +38,17 @@ const CardsOverviewPage: React.FC = () => {
     );
   }
 
-  if (error) {
+  const failed = error ?? gone.error;
+  if (failed) {
     return (
       <PageLayout>
         {header}
-        <EmptyState message={`Failed to load: ${error.message}`} />
+        <EmptyState message={`Failed to load: ${failed.message}`} />
       </PageLayout>
     );
   }
 
-  if (cards.length === 0) {
+  if (cards.length === 0 && goneCards.length === 0) {
     return (
       <PageLayout>
         {header}
@@ -51,12 +58,19 @@ const CardsOverviewPage: React.FC = () => {
   }
 
   const query = fold(search.trim());
-  const shown = query
-    ? cards.filter((card) =>
-        [card.name, card.pokemon_name, card.set_name, card.location]
-          .some((text) => text && fold(text).includes(query)),
-      )
-    : cards;
+  const matching = (list: Card[]) =>
+    query
+      ? list.filter((card) =>
+          [card.name, card.pokemon_name, card.set_name, card.location, card.gone_to].some(
+            (text) => text && fold(text).includes(query),
+          ),
+        )
+      : list;
+  const results = (list: Card[], empty: string) => {
+    const shown = matching(list);
+    if (shown.length) return <CardGrid cards={shown} showPokemon />;
+    return <EmptyState message={query ? `No card matches "${search.trim()}".` : empty} />;
+  };
 
   return (
     <PageLayout>
@@ -68,11 +82,27 @@ const CardsOverviewPage: React.FC = () => {
           label="Search cards"
           placeholder="Card, Pokémon, set or binder…"
         />
-        {shown.length ? (
-          <CardGrid cards={shown} showPokemon />
-        ) : (
-          <EmptyState message={`No card matches "${search.trim()}".`} />
-        )}
+        <Tabs
+          value={tab}
+          onValueChange={setTab}
+          items={[
+            {
+              value: "collection",
+              label: "Collection",
+              count: matching(cards).length,
+              content: results(cards, "Every card has gone."),
+            },
+            {
+              value: "gone",
+              label: "Gone",
+              count: matching(goneCards).length,
+              content: results(
+                goneCards,
+                "No card sold, given away or traded. To let one go, open it and pick Sell or give away in its menu.",
+              ),
+            },
+          ]}
+        />
       </Flex>
     </PageLayout>
   );

@@ -22,14 +22,18 @@ function integer(value: unknown, name: string): number {
   return value as number;
 }
 
+// A card sold, given away or traded is out of the collection.
+const GONE = "This card is gone: bring it back first";
+
 // Puts a card in its Pokémon's slot. The old featured card steps down first:
 // the unique index allows one per Pokémon.
 rpc.post("/set_featured_card", async (c) => {
   const id = integer((await body(c)).id, "id");
-  const card = db.prepare("select pokemon_id from cards where id = ?").get(id) as
-    | { pokemon_id: number }
+  const card = db.prepare("select pokemon_id, gone_on from cards where id = ?").get(id) as
+    | { pokemon_id: number; gone_on: string | null }
     | undefined;
   if (!card) throw new ApiError(404, `cards/${id} not found`);
+  if (card.gone_on) throw new ApiError(409, GONE);
 
   transaction(db, () => {
     db.prepare("update cards set is_featured = 0 where pokemon_id = ? and is_featured = 1").run(
@@ -87,16 +91,22 @@ rpc.post("/put_in_binder", async (c) => {
   if (binder.kind !== "free") throw new ApiError(400, `${binder.name} keeps its own order`);
   const card = db
     .prepare(
-      `select c.is_featured, c.grading_company, exists (
+      `select c.is_featured, c.grading_company, c.gone_on, exists (
          select 1 from binders b
          where b.kind = 'pokedex' and c.pokemon_id between b.first_pokemon_id and b.last_pokemon_id
        ) as in_pokedex_binder
        from cards c where c.id = ?`,
     )
     .get(cardId) as
-    | { is_featured: number; grading_company: string | null; in_pokedex_binder: number }
+    | {
+        is_featured: number;
+        grading_company: string | null;
+        gone_on: string | null;
+        in_pokedex_binder: number;
+      }
     | undefined;
   if (!card) throw new ApiError(404, `cards/${cardId} not found`);
+  if (card.gone_on) throw new ApiError(409, GONE);
   if (card.grading_company) throw new ApiError(409, "A graded card's slab doesn't fit in a pocket");
   if (card.is_featured && card.in_pokedex_binder) {
     throw new ApiError(409, "This card is in its Pokémon's slot, in the Pokédex binder");
@@ -119,4 +129,86 @@ rpc.post("/put_in_binder", async (c) => {
     );
   });
   return c.json({ card_id: cardId, binder_id: binderId, binder_pocket: pocket });
+});
+
+function optionalText(value: unknown, name: string): string | null {
+  if (value == null) return null;
+  if (typeof value !== "string") throw new ApiError(400, `${name}: expected text`);
+  return value.trim() || null;
+}
+
+// Saves a purchase and its lines together, so a purchase is never seen half
+// written. Lines with an id are updated (the cards pulled from them keep
+// their link), lines without one are added, and the purchase's other lines
+// are deleted: their cards stay, without saying where they came from. The
+// table's checks guard the values.
+rpc.post("/save_purchase", async (c) => {
+  const values = await body(c);
+  const purchaseId = values.id == null ? null : integer(values.id, "id");
+  const purchase = {
+    boughtOn: optionalText(values.bought_on, "bought_on"),
+    shop: optionalText(values.shop, "shop"),
+    shipping: values.shipping == null ? 0 : integer(values.shipping, "shipping"),
+    notes: optionalText(values.notes, "notes"),
+  };
+  if (!Array.isArray(values.items) || !values.items.length) {
+    throw new ApiError(400, "items: expected a non-empty array");
+  }
+  const items = values.items.map((value: Record<string, unknown>, index) => {
+    const at = `items[${index}]`;
+    if (value === null || typeof value !== "object") throw new ApiError(400, `${at}: expected an object`);
+    return {
+      id: value.id == null ? null : integer(value.id, `${at}.id`),
+      product: optionalText(value.product, `${at}.product`),
+      cardSetId: value.card_set_id == null ? null : integer(value.card_set_id, `${at}.card_set_id`),
+      name: optionalText(value.name, `${at}.name`),
+      quantity: integer(value.quantity, `${at}.quantity`),
+      unitPrice: integer(value.unit_price, `${at}.unit_price`),
+      packs: integer(value.packs, `${at}.packs`),
+    };
+  });
+
+  let id = purchaseId;
+  transaction(db, () => {
+    if (id === null) {
+      id = Number(
+        db
+          .prepare("insert into purchases (bought_on, shop, shipping, notes) values (?, ?, ?, ?)")
+          .run(purchase.boughtOn, purchase.shop, purchase.shipping, purchase.notes).lastInsertRowid,
+      );
+    } else {
+      const { changes } = db
+        .prepare("update purchases set bought_on = ?, shop = ?, shipping = ?, notes = ? where id = ?")
+        .run(purchase.boughtOn, purchase.shop, purchase.shipping, purchase.notes, id);
+      if (!changes) throw new ApiError(404, `purchases/${id} not found`);
+    }
+
+    const existing = new Set(
+      (db.prepare("select id from purchase_items where purchase_id = ?").all(id) as { id: number }[]).map(
+        (row) => row.id,
+      ),
+    );
+    const kept = new Set(items.flatMap((item) => (item.id === null ? [] : [item.id])));
+    for (const itemId of kept) {
+      if (!existing.has(itemId)) throw new ApiError(400, `purchase_items/${itemId} isn't in this purchase`);
+    }
+    const remove = db.prepare("delete from purchase_items where id = ?");
+    for (const itemId of existing) if (!kept.has(itemId)) remove.run(itemId);
+
+    const update = db.prepare(
+      `update purchase_items
+       set product = ?, card_set_id = ?, name = ?, quantity = ?, unit_price = ?, packs = ?
+       where id = ?`,
+    );
+    const insert = db.prepare(
+      `insert into purchase_items (purchase_id, product, card_set_id, name, quantity, unit_price, packs)
+       values (?, ?, ?, ?, ?, ?, ?)`,
+    );
+    for (const item of items) {
+      const row = [item.product, item.cardSetId, item.name, item.quantity, item.unitPrice, item.packs] as const;
+      if (item.id === null) insert.run(id, ...row);
+      else update.run(...row, item.id);
+    }
+  });
+  return c.json({ id });
 });

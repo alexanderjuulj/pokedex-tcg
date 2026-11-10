@@ -23,6 +23,8 @@ a gray silhouette and turns to color when you add a card of it, from any era
 of the card game. Each card keeps its details and its story: where it came
 from, who gave it to you. Virtual binders show where every card sits, page by
 page, and the sets show which packs hold the Pokémon you're still missing.
+And the Spending page keeps what the packs and boxes have cost, shipping
+and all.
 
 It runs on your own computer, and the whole family uses it from their
 phones. There's no sign-up and no subscription, and your collection never
@@ -308,6 +310,13 @@ Then start the app again.
     Pokédex, it still counts, and its pocket stays free for a loose card.
   - **A card that isn't in the list** (another print, a jumbo card) can be
     entered by hand.
+- **Selling or giving away a card** (a duplicate, a trade): open it and
+  pick Sell or give away in its menu. It leaves the collection and its
+  binder, but it isn't deleted: Cards → Gone keeps it, with who it went to
+  and what it sold for, and its purchase still counts it as pulled. If it
+  was a Pokémon's card in the Pokédex, your oldest other card of that
+  Pokémon takes the slot (or the Pokémon is missing again). Bring it back
+  from the same menu if a trade falls through.
 - **Sets** show how many of the Pokémon you still need are in each one, to
   help you pick which packs to open.
 - **Pack odds:** a Pokémon's Sets tab says about how many packs of each
@@ -320,6 +329,22 @@ Then start the app again.
   Ultra Beast, Paradox and starter Pokémon from every region. A Pokémon's
   page says which one it is and what that means, for the card you pulled
   and didn't recognise.
+- **Spending** keeps what you buy: a shop visit or an online order, with
+  a line for each product in it (3 booster packs of a set, an Elite Trainer
+  Box) and the shipping. The shipping is shared by what's in the order, by
+  price, so a box carries more of it than a pack. The page adds it all up:
+  in all, this year, per pack and per set, and what the cards you sold
+  brought back.
+  - **Pulled from:** a card can say which purchase it came out of. A new
+    card of a set starts at the newest purchase of that set (from the last
+    30 days), so opening a pack and adding its cards one by one needs no
+    extra taps. The page then says what each new Pokémon cost, and each
+    Pokémon you need (the ones of your regions, that go in the binder):
+    in all, per set (which packs pay off) and per purchase. Packs with no
+    cards logged yet are left out until you open them.
+  - **Currency:** amounts are in euros. To use another (dollars, pounds,
+    kroner…), open Spending, tap ⋮ and pick it under Currency. It changes
+    how the amounts are shown, not what they are: nothing is converted.
 - **More regions** can be added any time: Binders → Collect more regions.
 
 ## For developers
@@ -356,6 +381,7 @@ Phone / browser ──▶ Vite (:5320)  ──/api──▶  Hono API (:5321)  �
 | Check the code            | `pnpm lint` and `pnpm build` (type-checks the app, the server and the db tool)           |
 | Deploy to a server        | `pnpm deploy:server`, after the one-time setup in [`deploy/README.md`](deploy/README.md) |
 | Change the name           | `src/constants/app.ts`, `index.html`, `public/site.webmanifest`                          |
+| Offer another currency    | Add it to `src/constants/currencies.ts` (then pick it in Spending → ⋮ → Currency)        |
 | Change the colors         | `src/utils/scss/base/_colors.scss`                                                       |
 | Change the icon           | Replace `public/AppIcon.png` (1024 px), then `pnpm icons` (macOS)                        |
 | Start the local data over | `pnpm db:reset` (backs up first), then `pnpm catalog:pull`                               |
