@@ -6,7 +6,11 @@ import type {
   TablesUpdate,
 } from "@/lib/database.types";
 import { api } from "@/lib/api";
-import { BINDER_INVALIDATES, CARD_INVALIDATES } from "@/constants/invalidates";
+import {
+  BINDER_INVALIDATES,
+  CARD_INVALIDATES,
+  PURCHASE_INVALIDATES,
+} from "@/constants/invalidates";
 
 // A Pokédex entry with how many of its cards we own.
 export type Pokemon = Tables<"pokemon_overview">;
@@ -19,6 +23,12 @@ export type CatalogCard = Tables<"pokemon_catalog_cards">;
 export type CardSet = Tables<"set_overview">;
 // A virtual binder, with how many cards it holds.
 export type Binder = Tables<"binder_overview">;
+// A shop visit or an online order, with what it cost in all.
+export type Purchase = Tables<"purchase_overview">;
+// A line of a purchase (3 boosters of a set), with its share of the shipping.
+export type PurchaseItem = Tables<"purchase_item_overview">;
+// The collection's choices, in one row (id 1): the currency.
+export type Settings = Tables<"settings">;
 
 // Joined rows embed their references as `Ref`s: XWithRefs = X & { item: Ref }.
 export type Ref = { id: number; name: string };
@@ -124,6 +134,48 @@ export function useBinder(id: number) {
   });
 }
 
+// Every purchase, newest first. A family's purchases stay few enough to fetch
+// whole, like their lines.
+export function usePurchases() {
+  return useQuery({
+    queryKey: ["purchase_overview"],
+    queryFn: () => api.list("purchase_overview", { order: ["-bought_on", "-id"] }),
+  });
+}
+
+export function usePurchase(id: number) {
+  return useQuery({
+    queryKey: ["purchase_overview", id],
+    queryFn: () => api.get("purchase_overview", id),
+  });
+}
+
+// Every purchase's lines, newest purchase first and each in the order typed.
+export function usePurchaseItems() {
+  return useQuery({
+    queryKey: ["purchase_item_overview"],
+    queryFn: () => api.list("purchase_item_overview", { order: ["-bought_on", "-purchase_id", "id"] }),
+  });
+}
+
+// The cards pulled from one purchase, in the order they were added.
+export function usePurchaseCards(purchaseId: number) {
+  return useQuery({
+    queryKey: ["owned_cards", { purchaseId }],
+    queryFn: () =>
+      api.list("owned_cards", { where: { purchase_id: purchaseId }, order: ["created_at"] }),
+  });
+}
+
+// The one row of settings. They hardly change, so the cache keeps them.
+export function useSettings() {
+  return useQuery({
+    queryKey: ["settings"],
+    queryFn: () => api.get("settings", 1),
+    staleTime: Infinity,
+  });
+}
+
 // The Pokémon on one catalogue card: two or more on a tag-team card.
 export function useCatalogCardPokemon(catalogCardId: number | null) {
   return useQuery({
@@ -139,8 +191,9 @@ export function useCatalogCardPokemon(catalogCardId: number | null) {
 // Mutations
 // ---------------------------------------------------------------------------
 
-// Singular labels for the create/update toasts. Only cards are writable
-// through the API; the rest is reference data from the pulls.
+// Singular labels for the create/update toasts. Cards, binders, purchases and
+// the settings are writable through the API; the rest is reference data from
+// the pulls, or written through an RPC (a purchase's lines).
 const TABLE_LABELS: Record<TableName, string> = {
   cards: "Card",
   binders: "Binder",
@@ -148,6 +201,9 @@ const TABLE_LABELS: Record<TableName, string> = {
   card_sets: "Set",
   catalog_cards: "Catalogue card",
   catalog_card_pokemon: "Catalogue link",
+  purchases: "Purchase",
+  purchase_items: "Purchase line",
+  settings: "Settings",
 };
 
 export function useTableMutations<T extends TableName>(
@@ -257,5 +313,42 @@ export function useAddPokedexBinders() {
         ),
       ),
     meta: { errorMessage: "Could not make the binders" },
+  });
+}
+
+// A purchase and its lines, as the purchase form saves them. A line with an
+// id is an existing one; the purchase's lines left out are deleted.
+export type PurchaseSave = {
+  id: number | null;
+  bought_on: string;
+  shop: string | null;
+  shipping: number;
+  notes: string | null;
+  items: {
+    id: number | null;
+    product: string;
+    card_set_id: number | null;
+    name: string | null;
+    quantity: number;
+    unit_price: number;
+    packs: number;
+  }[];
+};
+
+// Saves a purchase with its lines in one transaction (server/rpc.ts).
+export function useSavePurchase(isNew: boolean) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (purchase: PurchaseSave) => api.rpc<{ id: number }>("save_purchase", purchase),
+    onSuccess: () =>
+      Promise.all(
+        PURCHASE_INVALIDATES.map((key) =>
+          queryClient.invalidateQueries({ queryKey: [key] }),
+        ),
+      ),
+    meta: {
+      successMessage: isNew ? "Purchase added" : "Purchase saved",
+      errorMessage: isNew ? "Could not add the purchase" : "Could not save the purchase",
+    },
   });
 }

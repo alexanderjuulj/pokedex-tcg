@@ -19,6 +19,7 @@ import {
   useCatalogCardPokemon,
   useOwnedCards,
   usePokedex,
+  usePurchaseItems,
   usePutInBinder,
   useSetFeaturedCard,
   useTableMutations,
@@ -33,6 +34,7 @@ import {
   GRADING_LABELS,
   LANGUAGE_LABELS,
 } from "../../constants";
+import { pulledFromChoices } from "@/features/spending/spending";
 import { binderIdOf, placementChoices, type Placement } from "../../placement";
 import type { CardFinish } from "../../types";
 import CardImage from "../CardImage/CardImage";
@@ -131,6 +133,17 @@ const CardForm: React.FC<CardFormProps> = ({ card, pokemonId: initialPokemonId, 
   const placement =
     chosen && choices.items.some((item) => item.value === chosen) ? chosen : choices.initial;
 
+  // The purchase line it was pulled from. Until one is picked, the one it
+  // has, or for a new card the newest purchase of its set.
+  const purchaseItems = usePurchaseItems();
+  const [pickedPurchase, setPickedPurchase] = useState<string | null>(null);
+  const pulledFrom = pulledFromChoices(
+    purchaseItems.data ?? [],
+    card,
+    catalogCard?.card_set_id ?? null,
+  );
+  const purchaseItem = pickedPurchase ?? pulledFrom.initial;
+
   // A tag-team card counts for one of the Pokémon on it.
   const pokedex = usePokedex();
   const onCard = useCatalogCardPokemon(
@@ -161,6 +174,7 @@ const CardForm: React.FC<CardFormProps> = ({ card, pokemonId: initialPokemonId, 
       kept_outside: placement === "none",
       location: placement === "none" ? emptyToNull(location) : null,
       notes: emptyToNull(notes),
+      purchase_item_id: purchaseItem === "none" ? null : Number(purchaseItem),
       ...(!printed && {
         name: cardName.trim(),
         set_name: emptyToNull(cardSet),
@@ -289,6 +303,17 @@ const CardForm: React.FC<CardFormProps> = ({ card, pokemonId: initialPokemonId, 
           <DateInput value={acquiredOn} onChange={setAcquiredOn} />
         </Field>
       </Grid>
+      {pulledFrom.items.length > 1 && (
+        <Field label="Pulled from">
+          <Select
+            value={purchaseItem}
+            onValueChange={setPickedPurchase}
+            items={pulledFrom.items}
+            searchable={pulledFrom.items.length > 8}
+            required
+          />
+        </Field>
+      )}
       {(!printed || printed.hasFirstEdition) && (
         <Checkbox label="1st edition" checked={firstEdition} onCheckedChange={setFirstEdition} />
       )}

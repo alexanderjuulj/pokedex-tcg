@@ -6,6 +6,7 @@ import { CARD_INVALIDATES } from "@/constants/invalidates";
 import {
   useBinders,
   useOwnedCard,
+  usePurchaseItems,
   usePutInBinder,
   useSetFeaturedCard,
   useTableMutations,
@@ -27,6 +28,7 @@ const CardSinglePage: React.FC = () => {
   const cardDialog = useFormDialog<OwnedCard, CardDialogDefaults>();
   const setFeatured = useSetFeaturedCard();
   const binders = useBinders();
+  const purchaseItems = usePurchaseItems();
   const putInBinder = usePutInBinder();
   const { remove, update } = useTableMutations("cards", CARD_INVALIDATES);
   const deleteDialog = useConfirmDelete<OwnedCard>({
@@ -132,7 +134,11 @@ const CardSinglePage: React.FC = () => {
             alt={data.name ?? ""}
           />
         </div>
-        <CardFacts card={data} place={cardPlace(data, allBinders)} />
+        <CardFacts
+          card={data}
+          place={cardPlace(data, allBinders)}
+          pulledFrom={purchaseItems.data?.find((item) => item.id === data.purchase_item_id) ?? null}
+        />
       </Grid>
       <AlertDialog title="Delete card" {...deleteDialog.props} />
       <CardDialog {...cardDialog.props} />

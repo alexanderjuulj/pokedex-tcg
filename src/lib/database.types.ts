@@ -117,6 +117,7 @@ export type Database = {
           binder_id: number | null;
           binder_pocket: number | null;
           kept_outside: boolean;
+          purchase_item_id: number | null;
         };
         Insert: {
           id?: never;
@@ -140,6 +141,7 @@ export type Database = {
           binder_id?: number | null;
           binder_pocket?: number | null;
           kept_outside?: boolean;
+          purchase_item_id?: number | null;
         };
         Update: {
           id?: never;
@@ -163,6 +165,7 @@ export type Database = {
           binder_id?: number | null;
           binder_pocket?: number | null;
           kept_outside?: boolean;
+          purchase_item_id?: number | null;
         };
       };
       catalog_card_pokemon: {
@@ -273,6 +276,93 @@ export type Database = {
           class?: string | null;
         };
       };
+      purchase_items: {
+        Row: {
+          id: number;
+          purchase_id: number;
+          product: string;
+          card_set_id: number | null;
+          name: string | null;
+          quantity: number;
+          unit_price: number;
+          packs: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: never;
+          purchase_id: number;
+          product: string;
+          card_set_id?: number | null;
+          name?: string | null;
+          quantity?: number;
+          unit_price: number;
+          packs?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: never;
+          purchase_id?: number;
+          product?: string;
+          card_set_id?: number | null;
+          name?: string | null;
+          quantity?: number;
+          unit_price?: number;
+          packs?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      purchases: {
+        Row: {
+          id: number;
+          bought_on: string;
+          shop: string | null;
+          shipping: number;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: never;
+          bought_on: string;
+          shop?: string | null;
+          shipping?: number;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: never;
+          bought_on?: string;
+          shop?: string | null;
+          shipping?: number;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      settings: {
+        Row: {
+          id: number;
+          currency: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: never;
+          currency?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: never;
+          currency?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
     };
     Views: {
       binder_overview: {
@@ -323,6 +413,8 @@ export type Database = {
           binder_id: number | null;
           binder_pocket: number | null;
           kept_outside: boolean | null;
+          purchase_item_id: number | null;
+          purchase_id: number | null;
           created_at: string | null;
           updated_at: string | null;
         };
@@ -365,6 +457,47 @@ export type Database = {
           evolution_method: string | null;
           class: string | null;
           card_count: number | null;
+        };
+      };
+      purchase_item_overview: {
+        Row: {
+          id: number | null;
+          purchase_id: number | null;
+          bought_on: string | null;
+          shop: string | null;
+          product: string | null;
+          card_set_id: number | null;
+          set_name: string | null;
+          has_logo: boolean | null;
+          name: string | null;
+          quantity: number | null;
+          unit_price: number | null;
+          packs: number | null;
+          pack_count: number | null;
+          price: number | null;
+          shipping_share: number | null;
+          cost: number | null;
+          card_count: number | null;
+          slot_count: number | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+      };
+      purchase_overview: {
+        Row: {
+          id: number | null;
+          bought_on: string | null;
+          shop: string | null;
+          shipping: number | null;
+          notes: string | null;
+          price: number | null;
+          total: number | null;
+          pack_count: number | null;
+          item_count: number | null;
+          card_count: number | null;
+          slot_count: number | null;
+          created_at: string | null;
+          updated_at: string | null;
         };
       };
       set_overview: {

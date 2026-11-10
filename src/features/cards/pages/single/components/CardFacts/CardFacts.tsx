@@ -1,7 +1,7 @@
 import type React from "react";
 import { Link } from "react-router";
 import { Badge, Flex, Text } from "@/components/ui";
-import type { OwnedCard } from "@/hooks/queries";
+import type { OwnedCard, PurchaseItem } from "@/hooks/queries";
 import { formatCardNumber } from "@/lib/pokemon";
 import { formatDate } from "@/lib/utils";
 import { BinderPlaceLink } from "@/features/binders/components";
@@ -9,15 +9,18 @@ import type { BinderPlace } from "@/features/binders/layout";
 import { CONDITION_LABELS, FINISH_LABELS, LANGUAGE_LABELS } from "@/features/cards/constants";
 import { gradeLabel } from "@/features/cards/grading";
 import type { CardCondition, CardFinish, CardLanguage } from "@/features/cards/types";
+import { pulledFromLabel } from "@/features/spending/spending";
 import styles from "../../CardSingle.module.scss";
 
 type CardFactsProps = {
   card: OwnedCard;
   // Its pocket in a binder, if it's in one.
   place: BinderPlace | null;
+  // The purchase line it was pulled from, if it says.
+  pulledFrom: PurchaseItem | null;
 };
 
-const CardFacts: React.FC<CardFactsProps> = ({ card, place }) => {
+const CardFacts: React.FC<CardFactsProps> = ({ card, place, pulledFrom }) => {
   const version = [
     FINISH_LABELS[card.finish as CardFinish],
     card.first_edition && "1st edition",
@@ -47,6 +50,14 @@ const CardFacts: React.FC<CardFactsProps> = ({ card, place }) => {
         (card.location ?? (card.kept_outside ? "Outside the binders" : "—"))
       ),
     ],
+    ...(pulledFrom
+      ? [
+          [
+            "Pulled from",
+            <Link to={`/spending/${pulledFrom.purchase_id}`}>{pulledFromLabel(pulledFrom)}</Link>,
+          ] as [string, React.ReactNode],
+        ]
+      : []),
     ["Added", formatDate(card.created_at!.slice(0, 10))],
   ];
 

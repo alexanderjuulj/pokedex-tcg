@@ -9,10 +9,12 @@ import {
   LoginPage,
   PokedexOverviewPage,
   PokemonSinglePage,
+  PurchaseSinglePage,
   SetSinglePage,
   SetsOverviewPage,
   SetupGate,
   SetupPage,
+  SpendingOverviewPage,
 } from "@/features";
 
 export const router = createBrowserRouter([
@@ -37,6 +39,8 @@ export const router = createBrowserRouter([
               { path: "/cards/:id", element: <CardSinglePage /> },
               { path: "/binders", element: <BindersOverviewPage /> },
               { path: "/binders/:id", element: <BinderSinglePage /> },
+              { path: "/spending", element: <SpendingOverviewPage /> },
+              { path: "/spending/:id", element: <PurchaseSinglePage /> },
             ],
           },
         ],

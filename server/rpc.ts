@@ -120,3 +120,85 @@ rpc.post("/put_in_binder", async (c) => {
   });
   return c.json({ card_id: cardId, binder_id: binderId, binder_pocket: pocket });
 });
+
+function optionalText(value: unknown, name: string): string | null {
+  if (value == null) return null;
+  if (typeof value !== "string") throw new ApiError(400, `${name}: expected text`);
+  return value.trim() || null;
+}
+
+// Saves a purchase and its lines together, so a purchase is never seen half
+// written. Lines with an id are updated (the cards pulled from them keep
+// their link), lines without one are added, and the purchase's other lines
+// are deleted: their cards stay, without saying where they came from. The
+// table's checks guard the values.
+rpc.post("/save_purchase", async (c) => {
+  const values = await body(c);
+  const purchaseId = values.id == null ? null : integer(values.id, "id");
+  const purchase = {
+    boughtOn: optionalText(values.bought_on, "bought_on"),
+    shop: optionalText(values.shop, "shop"),
+    shipping: values.shipping == null ? 0 : integer(values.shipping, "shipping"),
+    notes: optionalText(values.notes, "notes"),
+  };
+  if (!Array.isArray(values.items) || !values.items.length) {
+    throw new ApiError(400, "items: expected a non-empty array");
+  }
+  const items = values.items.map((value: Record<string, unknown>, index) => {
+    const at = `items[${index}]`;
+    if (value === null || typeof value !== "object") throw new ApiError(400, `${at}: expected an object`);
+    return {
+      id: value.id == null ? null : integer(value.id, `${at}.id`),
+      product: optionalText(value.product, `${at}.product`),
+      cardSetId: value.card_set_id == null ? null : integer(value.card_set_id, `${at}.card_set_id`),
+      name: optionalText(value.name, `${at}.name`),
+      quantity: integer(value.quantity, `${at}.quantity`),
+      unitPrice: integer(value.unit_price, `${at}.unit_price`),
+      packs: integer(value.packs, `${at}.packs`),
+    };
+  });
+
+  let id = purchaseId;
+  transaction(db, () => {
+    if (id === null) {
+      id = Number(
+        db
+          .prepare("insert into purchases (bought_on, shop, shipping, notes) values (?, ?, ?, ?)")
+          .run(purchase.boughtOn, purchase.shop, purchase.shipping, purchase.notes).lastInsertRowid,
+      );
+    } else {
+      const { changes } = db
+        .prepare("update purchases set bought_on = ?, shop = ?, shipping = ?, notes = ? where id = ?")
+        .run(purchase.boughtOn, purchase.shop, purchase.shipping, purchase.notes, id);
+      if (!changes) throw new ApiError(404, `purchases/${id} not found`);
+    }
+
+    const existing = new Set(
+      (db.prepare("select id from purchase_items where purchase_id = ?").all(id) as { id: number }[]).map(
+        (row) => row.id,
+      ),
+    );
+    const kept = new Set(items.flatMap((item) => (item.id === null ? [] : [item.id])));
+    for (const itemId of kept) {
+      if (!existing.has(itemId)) throw new ApiError(400, `purchase_items/${itemId} isn't in this purchase`);
+    }
+    const remove = db.prepare("delete from purchase_items where id = ?");
+    for (const itemId of existing) if (!kept.has(itemId)) remove.run(itemId);
+
+    const update = db.prepare(
+      `update purchase_items
+       set product = ?, card_set_id = ?, name = ?, quantity = ?, unit_price = ?, packs = ?
+       where id = ?`,
+    );
+    const insert = db.prepare(
+      `insert into purchase_items (purchase_id, product, card_set_id, name, quantity, unit_price, packs)
+       values (?, ?, ?, ?, ?, ?, ?)`,
+    );
+    for (const item of items) {
+      const row = [item.product, item.cardSetId, item.name, item.quantity, item.unitPrice, item.packs] as const;
+      if (item.id === null) insert.run(id, ...row);
+      else update.run(...row, item.id);
+    }
+  });
+  return c.json({ id });
+});
