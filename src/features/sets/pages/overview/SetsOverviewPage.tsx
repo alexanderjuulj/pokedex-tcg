@@ -1,11 +1,12 @@
 import type React from "react";
 import { useState } from "react";
-import { Box, EmptyState, Flex, SearchInput, Select, Spinner, Tabs, Text } from "@/components/ui";
+import { Box, EmptyState, Flex, Grid, SearchInput, Select, Spinner, Tabs, Text } from "@/components/ui";
 import { PageHeader, PageLayout } from "@/components/layout";
 import { useSets, type CardSet } from "@/hooks/queries";
 import { useTabParam } from "@/hooks/useTabParam";
-import { fold } from "@/lib/utils";
+import { fold, todayIso } from "@/lib/utils";
 import { SetGrid } from "@/features/sets/components";
+import { PERIOD_ITEMS, RECENT_YEARS } from "@/features/sets/constants";
 
 const TABS = ["boosters", "other"];
 const SORT_ITEMS = [
@@ -13,11 +14,21 @@ const SORT_ITEMS = [
   { value: "need", label: "Most needed" },
 ];
 const SORTS = SORT_ITEMS.map((item) => item.value);
+const PERIODS = PERIOD_ITEMS.map((item) => item.value);
+
+// The first day a period's sets are out on, or null for any year.
+function periodStart(period: string): string | null {
+  if (period === "any") return null;
+  if (period !== "recent") return `${period}-01-01`;
+  const today = todayIso();
+  return `${Number(today.slice(0, 4)) - RECENT_YEARS}${today.slice(4)}`;
+}
 
 const SetsOverviewPage: React.FC = () => {
   const { data, isLoading, error } = useSets();
   const [tab, setTab] = useTabParam(TABS);
   const [sort, setSort] = useTabParam(SORTS, "newest", "sort");
+  const [period, setPeriod] = useTabParam(PERIODS, "any", "since");
   const [search, setSearch] = useState("");
 
   const header = (
@@ -43,12 +54,14 @@ const SetsOverviewPage: React.FC = () => {
   }
 
   const query = fold(search.trim());
+  const since = periodStart(period);
   const shown = (data ?? []).filter(
     (set) =>
-      !query ||
-      [set.name, set.series, set.released_on?.slice(0, 4)].some(
-        (text) => text && fold(text).includes(query),
-      ),
+      (!since || (set.released_on ?? "") >= since) &&
+      (!query ||
+        [set.name, set.series, set.released_on?.slice(0, 4)].some(
+          (text) => text && fold(text).includes(query),
+        )),
   );
   // Newest first from the API; the sort is stable, so ties stay newest first.
   const sorted =
@@ -60,9 +73,8 @@ const SetsOverviewPage: React.FC = () => {
 
   const list = (sets: CardSet[]) => {
     if (!sets.length) {
-      return (
-        <EmptyState message={query ? `No set matches "${search.trim()}".` : "No sets here."} />
-      );
+      const empty = since ? "No sets here from that period." : "No sets here.";
+      return <EmptyState message={query ? `No set matches "${search.trim()}".` : empty} />;
     }
     if (sort === "need") return <SetGrid sets={sets} />;
     // Newest first, so each series comes in the order it last had a set out.
@@ -89,8 +101,14 @@ const SetsOverviewPage: React.FC = () => {
     <PageLayout>
       {header}
       <Flex direction="column" gap="3">
-        <Flex gap="2" align="center">
-          <Box flexGrow="1" minWidth="0">
+        {/* The search on its own line on a phone, the sort and the period
+            side by side under it. */}
+        <Grid
+          columns={{ initial: "minmax(0, 1fr) minmax(0, 1fr)", sm: "minmax(0, 1fr) 9.5rem 9.5rem" }}
+          gap="2"
+          align="center"
+        >
+          <Box gridColumn={{ initial: "1 / -1", sm: "auto" }} minWidth="0">
             <SearchInput
               value={search}
               onValueChange={setSearch}
@@ -98,10 +116,9 @@ const SetsOverviewPage: React.FC = () => {
               placeholder="Set or series…"
             />
           </Box>
-          <Box flexShrink="0" width="9.5rem">
-            <Select value={sort} onValueChange={setSort} items={SORT_ITEMS} required />
-          </Box>
-        </Flex>
+          <Select value={sort} onValueChange={setSort} items={SORT_ITEMS} required />
+          <Select value={period} onValueChange={setPeriod} items={PERIOD_ITEMS} required />
+        </Grid>
         <Tabs
           value={tab}
           onValueChange={setTab}

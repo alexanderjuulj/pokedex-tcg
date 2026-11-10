@@ -318,7 +318,9 @@ Then start the app again.
   Pokémon takes the slot (or the Pokémon is missing again). Bring it back
   from the same menu if a trade falls through.
 - **Sets** show how many of the Pokémon you still need are in each one, to
-  help you pick which packs to open.
+  help you pick which packs to open. Sort them by Most needed, and limit
+  them to a period (the last 2 years, since 2020…): the oldest sets hold
+  many of the Pokémon you need, but their packs are hard to find.
 - **Pack odds:** a Pokémon's Sets tab says about how many packs of each
   set it takes to pull it ("About 1 in 9 packs"). It also names the set
   with the best odds, and the best one from the last two years, which a
