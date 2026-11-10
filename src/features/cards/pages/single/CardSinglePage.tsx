@@ -15,7 +15,7 @@ import {
   useCard,
   usePurchaseItems,
   usePutInBinder,
-  useSetFeaturedCard,
+  usePutInPocket,
   useTableMutations,
   type Card,
   type OwnedCard,
@@ -30,7 +30,7 @@ import {
   LetGoDialog,
   type CardDialogDefaults,
 } from "@/features/cards/components";
-import { cardPlace, freePlace, pokemonPlace } from "@/features/binders/layout";
+import { cardPlace, freePlace, inPokedexBinder, pokedexBindersFor } from "@/features/binders/layout";
 import { CardFacts } from "./components";
 import styles from "./CardSingle.module.scss";
 
@@ -40,7 +40,7 @@ const CardSinglePage: React.FC = () => {
   const card = useCard(Number(params.id));
   const cardDialog = useFormDialog<OwnedCard, CardDialogDefaults>();
   const letGoDialog = useFormDialog<Card>();
-  const setFeatured = useSetFeaturedCard();
+  const putInPocket = usePutInPocket();
   const binders = useBinders();
   const purchaseItems = usePurchaseItems();
   const putInBinder = usePutInBinder();
@@ -115,20 +115,32 @@ const CardSinglePage: React.FC = () => {
     );
   }
 
-  // The card in its Pokémon's slot sits in its Pokédex pocket, or is kept
-  // outside the binder (a top loader); any other can go in a free binder, or
-  // move to another. A graded card goes in none: a slab doesn't fit in a
-  // pocket.
+  // A card filling its Pokémon's pocket in a Pokédex binder sits there, or is
+  // kept outside the binder (a top loader) and fills it from there; any other
+  // can go in a free binder, or move to another, or take a pocket over. A
+  // graded card goes in none: a slab doesn't fit in a pocket.
   const graded = Boolean(data.grading_company);
-  const inSlot = Boolean(data.is_featured && pokemonPlace(data.pokemon_id!, allBinders));
+  const inSlot = inPokedexBinder(data);
   const takeOut = {
     label: "Take out of the binder",
     onSelect: () =>
       update.mutate({
         id: data.id!,
-        values: { binder_id: null, binder_pocket: null, kept_outside: true },
+        // Out of its Pokédex pocket it still fills it, from outside.
+        values: inSlot
+          ? { kept_outside: true }
+          : { binder_id: null, binder_pocket: null, kept_outside: true },
       }),
   };
+  // The Pokédex binders keeping a pocket for its Pokémon, to put it in
+  // instead of the card there.
+  const pocketItems =
+    inSlot || graded
+      ? []
+      : pokedexBindersFor(data.pokemon_id!, allBinders).map((binder) => ({
+          label: `Put in its pocket in ${binder.name}`,
+          onSelect: () => putInPocket.mutate({ card_id: data.id!, binder_id: binder.id! }),
+        }));
   const slotItems = !inSlot
     ? []
     : !data.kept_outside
@@ -174,9 +186,7 @@ const CardSinglePage: React.FC = () => {
         actions={
           <DropdownMenu
             items={[
-              ...(data.is_featured || graded
-                ? []
-                : [{ label: "Put in the Pokédex slot", onSelect: () => setFeatured.mutate(data.id!) }]),
+              ...pocketItems,
               ...binderItems,
               { label: "Sell or give away", onSelect: () => letGoDialog.edit(data) },
               deleteItem,

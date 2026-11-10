@@ -25,11 +25,11 @@ import { pagesLabel, pokedexPages, pokedexSections } from "@/features/binders/la
 import type { BinderKind } from "@/features/binders/types";
 import { BinderPages, type Pocket } from "./components";
 
-// A Pokédex binder: each Pokémon's pocket holds the card in its slot (unless
+// A Pokédex binder: each Pokémon's pocket holds the card put in it (unless
 // it's kept outside the binder, in a top loader or a slab).
 function pokedexPockets(binder: Binder, cards: OwnedCard[], names: Map<number, string>) {
   const slots = new Map(
-    cards.filter((card) => card.is_featured).map((card) => [card.pokemon_id, card]),
+    cards.filter((card) => card.binder_id === binder.id).map((card) => [card.pokemon_id, card]),
   );
   return pokedexPages(binder).map((page) =>
     page.map((pokemonId): Pocket => {

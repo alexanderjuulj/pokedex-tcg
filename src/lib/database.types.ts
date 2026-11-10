@@ -114,9 +114,6 @@ export type Database = {
           acquired_on: string | null;
           location: string | null;
           notes: string | null;
-          is_featured: boolean;
-          created_at: string;
-          updated_at: string;
           binder_id: number | null;
           binder_pocket: number | null;
           kept_outside: boolean;
@@ -125,6 +122,8 @@ export type Database = {
           gone_how: string | null;
           gone_to: string | null;
           sold_for: number | null;
+          created_at: string;
+          updated_at: string;
         };
         Insert: {
           id?: never;
@@ -142,9 +141,6 @@ export type Database = {
           acquired_on?: string | null;
           location?: string | null;
           notes?: string | null;
-          is_featured?: boolean;
-          created_at?: string;
-          updated_at?: string;
           binder_id?: number | null;
           binder_pocket?: number | null;
           kept_outside?: boolean;
@@ -153,6 +149,8 @@ export type Database = {
           gone_how?: string | null;
           gone_to?: string | null;
           sold_for?: number | null;
+          created_at?: string;
+          updated_at?: string;
         };
         Update: {
           id?: never;
@@ -170,9 +168,6 @@ export type Database = {
           acquired_on?: string | null;
           location?: string | null;
           notes?: string | null;
-          is_featured?: boolean;
-          created_at?: string;
-          updated_at?: string;
           binder_id?: number | null;
           binder_pocket?: number | null;
           kept_outside?: boolean;
@@ -181,6 +176,8 @@ export type Database = {
           gone_how?: string | null;
           gone_to?: string | null;
           sold_for?: number | null;
+          created_at?: string;
+          updated_at?: string;
         };
       };
       catalog_card_pokemon: {
@@ -396,6 +393,12 @@ export type Database = {
           caught_count: number | null;
         };
       };
+      binder_pokemon: {
+        Row: {
+          binder_id: number | null;
+          pokemon_id: number | null;
+        };
+      };
       card_details: {
         Row: {
           id: number | null;
@@ -426,7 +429,7 @@ export type Database = {
           acquired_on: string | null;
           location: string | null;
           notes: string | null;
-          is_featured: boolean | null;
+          binder_kind: string | null;
           binder_id: number | null;
           binder_pocket: number | null;
           kept_outside: boolean | null;
@@ -470,7 +473,7 @@ export type Database = {
           acquired_on: string | null;
           location: string | null;
           notes: string | null;
-          is_featured: boolean | null;
+          binder_kind: string | null;
           binder_id: number | null;
           binder_pocket: number | null;
           kept_outside: boolean | null;
@@ -514,7 +517,7 @@ export type Database = {
           acquired_on: string | null;
           location: string | null;
           notes: string | null;
-          is_featured: boolean | null;
+          binder_kind: string | null;
           binder_id: number | null;
           binder_pocket: number | null;
           kept_outside: boolean | null;

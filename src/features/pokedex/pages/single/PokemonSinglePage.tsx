@@ -19,7 +19,7 @@ import {
   type CardDialogDefaults,
 } from "@/features/cards/components";
 import { BinderPlaceLink } from "@/features/binders/components";
-import { pokemonPlace } from "@/features/binders/layout";
+import { pocketPlace, pokedexBindersFor } from "@/features/binders/layout";
 import { CatalogTab, PokemonAbout, PokemonHero, PokemonSets } from "./components";
 import styles from "./PokemonSingle.module.scss";
 
@@ -56,7 +56,10 @@ const PokemonSinglePage: React.FC = () => {
 
   const data = pokemon.data;
   const owned = cards.data ?? [];
-  const place = pokemonPlace(id, binders.data ?? []);
+  // Its pocket in the Pokédex binder keeping one (a binder being collected
+  // first).
+  const pocketBinder = pokedexBindersFor(id, binders.data ?? [])[0];
+  const place = pocketBinder ? pocketPlace(pocketBinder, id) : null;
 
   return (
     // Not PageLayout: the hero and the sheet meet without a gap.
@@ -76,7 +79,9 @@ const PokemonSinglePage: React.FC = () => {
                   {/* Where its card sits, or will. */}
                   {place && (
                     <Text size="2" color="gray">
-                      {owned.some((card) => card.is_featured && !card.kept_outside)
+                      {owned.some(
+                        (card) => card.binder_id === pocketBinder?.id && !card.kept_outside,
+                      )
                         ? "In the binder: "
                         : "Its pocket: "}
                       <BinderPlaceLink place={place} />

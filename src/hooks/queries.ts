@@ -63,14 +63,16 @@ export function useOwnedCards() {
   });
 }
 
-// One Pokémon's cards, its featured card first.
+// One Pokémon's cards, the ones in a Pokédex binder's pocket first.
 export function usePokemonCards(pokemonId: number) {
   return useQuery({
     queryKey: ["owned_cards", { pokemonId }],
     queryFn: () =>
       api.list("owned_cards", {
         where: { pokemon_id: pokemonId },
-        order: ["-is_featured", "created_at"],
+        // 'pokedex' sorts after 'free' and before none: the card in its
+        // Pokédex pocket first.
+        order: ["-binder_kind", "created_at"],
       }),
   });
 }
@@ -281,12 +283,13 @@ export function useTableMutations<T extends TableName>(
   return { create, update, remove };
 }
 
-// Puts a card in its Pokémon's slot (server/rpc.ts), swapping out the old one
-// in the same transaction.
-export function useSetFeaturedCard() {
+// Puts a card in its Pokémon's pocket in a Pokédex binder (server/rpc.ts),
+// the card there going outside the binders in the same transaction.
+export function usePutInPocket() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: number) => api.rpc<{ id: number }>("set_featured_card", { id }),
+    mutationFn: (values: { card_id: number; binder_id: number }) =>
+      api.rpc<{ card_id: number; binder_id: number }>("put_in_pocket", values),
     onSuccess: () =>
       Promise.all(
         CARD_INVALIDATES.map((key) =>
@@ -294,8 +297,8 @@ export function useSetFeaturedCard() {
         ),
       ),
     meta: {
-      successMessage: "Featured card set",
-      errorMessage: "Could not set the featured card",
+      successMessage: "In its pocket",
+      errorMessage: "Could not put the card in its pocket",
     },
   });
 }

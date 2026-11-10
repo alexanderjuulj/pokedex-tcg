@@ -4,6 +4,7 @@ import { Star } from "lucide-react";
 import type { OwnedCard } from "@/hooks/queries";
 import { formatCardNumber } from "@/lib/pokemon";
 import { cn } from "@/lib/utils";
+import { inPokedexBinder } from "@/features/binders/layout";
 import { GONE_LABELS } from "../../constants";
 import type { CardGoneHow } from "../../types";
 import CardImage from "../CardImage/CardImage";
@@ -37,7 +38,7 @@ const CardGrid: React.FC<CardGridProps> = ({ cards, showPokemon = false, showFea
           {card.gone_how && (
             <span className={styles.item_gone}>{GONE_LABELS[card.gone_how as CardGoneHow]}</span>
           )}
-          {showFeatured && card.is_featured && (
+          {showFeatured && inPokedexBinder(card) && (
             <span className={styles.item_featured} title="In the Pokédex slot">
               <Star size={14} fill="currentColor" aria-label="Featured" />
             </span>

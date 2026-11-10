@@ -8,6 +8,7 @@ import { parsePrice } from "@/lib/money";
 import { formatCardNumber } from "@/lib/pokemon";
 import { toast } from "@/lib/toast";
 import { emptyToNull, todayIso } from "@/lib/utils";
+import { inPokedexBinder } from "@/features/binders/layout";
 import { GONE_LABELS } from "../../constants";
 import type { CardGoneHow } from "../../types";
 
@@ -31,18 +32,19 @@ const LetGoForm: React.FC<LetGoFormProps> = ({ card, onDone }) => {
   const [price, setPrice] = useState(money.input(card.sold_for));
   const [error, setError] = useState<string | null>(null);
 
-  // Its slot in the Pokédex, if it holds one: who takes it over.
+  // Its pocket in a Pokédex binder, if it fills one: who takes it over, the
+  // oldest card of its Pokémon in no Pokédex binder (a trigger).
   const others = (usePokemonCards(card.pokemon_id!).data ?? [])
-    .filter((other) => other.id !== card.id)
+    .filter((other) => other.id !== card.id && !inPokedexBinder(other))
     .sort((a, b) => (a.created_at ?? "").localeCompare(b.created_at ?? ""));
   const next = others[0];
   const slotHint =
-    card.gone_on || !card.is_featured
+    card.gone_on || !inPokedexBinder(card)
       ? null
       : next
         ? [
             `It's ${card.pokemon_name}'s card in the Pokédex. Your oldest other ${card.pokemon_name} card takes its place: ${next.name} (${next.set_name ?? "entered by hand"} ${formatCardNumber(next.number, next.set_card_count)}).`,
-            // Kept outside (a top loader), it holds the slot from there.
+            // Kept outside (a top loader), it fills the pocket from there.
             next.kept_outside && "It's kept outside the binders, so the pocket stays empty.",
           ]
             .filter(Boolean)
@@ -64,8 +66,7 @@ const LetGoForm: React.FC<LetGoFormProps> = ({ card, onDone }) => {
           gone_how: how,
           gone_to: emptyToNull(goneTo),
           sold_for: soldFor,
-          // Out of its slot and pocket: the gone_on check insists.
-          is_featured: false,
+          // Out of its binder and pocket: the gone_on check insists.
           binder_id: null,
           binder_pocket: null,
           kept_outside: true,

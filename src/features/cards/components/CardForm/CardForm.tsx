@@ -21,7 +21,7 @@ import {
   usePokedex,
   usePurchaseItems,
   usePutInBinder,
-  useSetFeaturedCard,
+  usePutInPocket,
   useTableMutations,
   type CatalogCard,
   type OwnedCard,
@@ -35,7 +35,7 @@ import {
   LANGUAGE_LABELS,
 } from "../../constants";
 import { pulledFromChoices } from "@/features/spending/spending";
-import { binderIdOf, placementChoices, type Placement } from "../../placement";
+import { placementChoices, type Placement } from "../../placement";
 import type { CardFinish } from "../../types";
 import CardImage from "../CardImage/CardImage";
 import styles from "./CardForm.module.scss";
@@ -120,7 +120,7 @@ const CardForm: React.FC<CardFormProps> = ({ card, pokemonId: initialPokemonId, 
   // fits, after "Counts for" or "Grading" changes), where it is or belongs.
   const binders = useBinders();
   const owned = useOwnedCards();
-  const setFeatured = useSetFeaturedCard();
+  const putInPocket = usePutInPocket();
   const putInBinder = usePutInBinder();
   const [chosen, setChosen] = useState<Placement | null>(null);
   const choices = placementChoices(
@@ -170,8 +170,7 @@ const CardForm: React.FC<CardFormProps> = ({ card, pokemonId: initialPokemonId, 
       grading_company: graded ? grading : null,
       grade: graded ? emptyToNull(grade) : null,
       acquired_on: emptyToNull(acquiredOn),
-      // Kept outside the binders, and where.
-      kept_outside: placement === "none",
+      // Where it's kept outside the binders.
       location: placement === "none" ? emptyToNull(location) : null,
       notes: emptyToNull(notes),
       purchase_item_id: purchaseItem === "none" ? null : Number(purchaseItem),
@@ -181,34 +180,27 @@ const CardForm: React.FC<CardFormProps> = ({ card, pokemonId: initialPokemonId, 
         number: emptyToNull(cardNumber),
       }),
     };
+    // Its binder and pocket, saved with it; a pocket another card fills or a
+    // free binder's next pocket follows the save. A card moving to another
+    // Pokémon leaves its pocket, and the triggers find the pocket a card.
+    const plan = choices.plan(placement);
     try {
       let id: number;
       if (card) {
-        const moved = Number(pokemonId) !== card.pokemon_id;
-        // A card leaves its slot when it moves; the triggers find the slots
-        // new holders.
-        const saved = await update.mutateAsync({
-          id: card.id!,
-          values: {
-            ...values,
-            ...(moved && { is_featured: false }),
-            ...(placement === "none" && { binder_id: null, binder_pocket: null }),
-          },
-        });
+        const saved = await update.mutateAsync({ id: card.id!, values: { ...values, ...plan.values } });
         id = saved.id;
       } else {
         const saved = await create.mutateAsync({
           ...values,
+          ...plan.values,
           catalog_card_id: printed?.catalogCardId ?? null,
         });
         id = saved.id;
       }
-      // Into its binder: a first card is in its Pokédex pocket already.
-      const binderId = binderIdOf(placement);
-      if (placement === "slot" && choices.swapsSlot) {
-        await setFeatured.mutateAsync(id);
-      } else if (binderId !== null && binderId !== card?.binder_id) {
-        await putInBinder.mutateAsync({ card_id: id, binder_id: binderId });
+      if (plan.then && "pocket" in plan.then) {
+        await putInPocket.mutateAsync({ card_id: id, binder_id: plan.then.pocket });
+      } else if (plan.then) {
+        await putInBinder.mutateAsync({ card_id: id, binder_id: plan.then.binder });
       }
       onDone();
     } catch (submitError) {
@@ -328,7 +320,7 @@ const CardForm: React.FC<CardFormProps> = ({ card, pokemonId: initialPokemonId, 
         <Button
           type="submit"
           disabled={
-            create.isPending || update.isPending || setFeatured.isPending || putInBinder.isPending
+            create.isPending || update.isPending || putInPocket.isPending || putInBinder.isPending
           }
         >
           {card ? "Save" : "Add card"}

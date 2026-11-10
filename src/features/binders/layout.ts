@@ -65,15 +65,28 @@ export function pokedexSections(binder: Binder) {
   });
 }
 
-// The Pokédex binder that keeps a pocket for this Pokémon, and where.
-export function pokemonPlace(pokemonId: number, binders: Binder[]): BinderPlace | null {
-  const binder = binders.find(
-    (candidate) =>
-      candidate.kind === "pokedex" &&
-      pokemonId >= candidate.first_pokemon_id! &&
-      pokemonId <= candidate.last_pokemon_id!,
-  );
-  if (!binder) return null;
+// Whether a card fills its Pokémon's pocket in a Pokédex binder: in it, or
+// from outside it when kept outside (a top loader, a slab).
+export const inPokedexBinder = (card: Pick<OwnedCard, "binder_kind">) =>
+  card.binder_kind === "pokedex";
+
+// Whether a Pokédex binder keeps a pocket for this Pokémon: its range, as
+// binder_pokemon has it in SQL.
+export const keepsPocketFor = (binder: Binder, pokemonId: number) =>
+  binder.kind === "pokedex" &&
+  pokemonId >= binder.first_pokemon_id! &&
+  pokemonId <= binder.last_pokemon_id!;
+
+// The Pokédex binders keeping a pocket for this Pokémon, the ones being
+// collected first.
+export const pokedexBindersFor = (pokemonId: number, binders: Binder[]) =>
+  binders
+    .filter((binder) => keepsPocketFor(binder, pokemonId))
+    .sort((a, b) => Number(Boolean(a.finished_on)) - Number(Boolean(b.finished_on)));
+
+// A Pokémon's pocket in a Pokédex binder: its page and place on it.
+export function pocketPlace(binder: Binder, pokemonId: number): BinderPlace | null {
+  if (!keepsPocketFor(binder, pokemonId)) return null;
   const perPage = binder.pockets_per_page!;
   let page = 1;
   for (const section of sections(binder)) {
@@ -93,22 +106,17 @@ export const freePlace = (binder: Binder, binderPocket: number): BinderPlace => 
   pocket: ((binderPocket - 1) % binder.pockets_per_page!) + 1,
 });
 
-// Where a card is: the card in its Pokémon's slot sits in its Pokédex binder
-// (unless it's kept outside the binders: a top loader, a slab); any other
-// card in the free binder it was put in, if any.
+// Where a card is: in a Pokédex binder its Pokémon's pocket (none when it
+// holds it from outside: a top loader, a slab), in a free binder the pocket
+// it was put in.
 export function cardPlace(
-  card: Pick<
-    OwnedCard,
-    "pokemon_id" | "is_featured" | "kept_outside" | "binder_id" | "binder_pocket"
-  >,
+  card: Pick<OwnedCard, "pokemon_id" | "kept_outside" | "binder_id" | "binder_pocket">,
   binders: Binder[],
 ): BinderPlace | null {
-  if (card.is_featured && !card.kept_outside) {
-    const place = pokemonPlace(card.pokemon_id!, binders);
-    if (place) return place;
-  }
   const binder = binders.find((candidate) => candidate.id === card.binder_id);
-  return binder && card.binder_pocket ? freePlace(binder, card.binder_pocket) : null;
+  if (!binder || card.kept_outside) return null;
+  if (binder.kind === "pokedex") return pocketPlace(binder, card.pokemon_id!);
+  return card.binder_pocket ? freePlace(binder, card.binder_pocket) : null;
 }
 
 export const placeUrl = (place: BinderPlace) =>

@@ -25,24 +25,38 @@ function integer(value: unknown, name: string): number {
 // A card sold, given away or traded is out of the collection.
 const GONE = "This card is gone: bring it back first";
 
-// Puts a card in its Pokémon's slot. The old featured card steps down first:
-// the unique index allows one per Pokémon.
-rpc.post("/set_featured_card", async (c) => {
-  const id = integer((await body(c)).id, "id");
-  const card = db.prepare("select pokemon_id, gone_on from cards where id = ?").get(id) as
-    | { pokemon_id: number; gone_on: string | null }
+// Puts a card in its Pokémon's pocket in a Pokédex binder. The card there
+// now goes outside the binders first (the pocket holds one), to be moved from
+// its own page. Into the pocket, even from outside the binders; a graded card
+// holds it from outside, as a slab doesn't fit.
+rpc.post("/put_in_pocket", async (c) => {
+  const values = await body(c);
+  const cardId = integer(values.card_id, "card_id");
+  const binderId = integer(values.binder_id, "binder_id");
+  const card = db
+    .prepare("select pokemon_id, gone_on, grading_company from cards where id = ?")
+    .get(cardId) as
+    | { pokemon_id: number; gone_on: string | null; grading_company: string | null }
     | undefined;
-  if (!card) throw new ApiError(404, `cards/${id} not found`);
+  if (!card) throw new ApiError(404, `cards/${cardId} not found`);
   if (card.gone_on) throw new ApiError(409, GONE);
+  const pocket = db
+    .prepare("select 1 from binder_pokemon where binder_id = ? and pokemon_id = ?")
+    .get(binderId, card.pokemon_id);
+  if (!pocket) throw new ApiError(409, "That binder keeps no pocket for this card's Pokémon");
 
   transaction(db, () => {
-    db.prepare("update cards set is_featured = 0 where pokemon_id = ? and is_featured = 1").run(
-      card.pokemon_id,
+    db.prepare(
+      `update cards set binder_id = null, binder_pocket = null, kept_outside = 1
+       where binder_id = ? and pokemon_id = ? and id <> ?`,
+    ).run(binderId, card.pokemon_id, cardId);
+    db.prepare("update cards set binder_id = ?, binder_pocket = null, kept_outside = ? where id = ?").run(
+      binderId,
+      card.grading_company ? 1 : 0,
+      cardId,
     );
-    // Into the slot is into its pocket, even from outside the binders.
-    db.prepare("update cards set is_featured = 1, kept_outside = 0 where id = ?").run(id);
   });
-  return c.json({ id });
+  return c.json({ card_id: cardId, binder_id: binderId });
 });
 
 // Makes the Pokédex binders the setup planned (one or several, from the
@@ -78,8 +92,8 @@ rpc.post("/add_pokedex_binders", async (c) => {
   return c.json({ ids });
 });
 
-// Puts a card in a free binder's first empty pocket. The card in a Pokémon's
-// slot can't go: it lives in its Pokédex binder.
+// Puts a card in a free binder's first empty pocket. A card filling its
+// Pokémon's pocket in a Pokédex binder can't go: it lives there.
 rpc.post("/put_in_binder", async (c) => {
   const values = await body(c);
   const cardId = integer(values.card_id, "card_id");
@@ -91,25 +105,18 @@ rpc.post("/put_in_binder", async (c) => {
   if (binder.kind !== "free") throw new ApiError(400, `${binder.name} keeps its own order`);
   const card = db
     .prepare(
-      `select c.is_featured, c.grading_company, c.gone_on, exists (
-         select 1 from binders b
-         where b.kind = 'pokedex' and c.pokemon_id between b.first_pokemon_id and b.last_pokemon_id
-       ) as in_pokedex_binder
-       from cards c where c.id = ?`,
+      `select c.grading_company, c.gone_on, b.name as pokedex_binder
+       from cards c left join binders b on b.id = c.binder_id and b.kind = 'pokedex'
+       where c.id = ?`,
     )
     .get(cardId) as
-    | {
-        is_featured: number;
-        grading_company: string | null;
-        gone_on: string | null;
-        in_pokedex_binder: number;
-      }
+    | { grading_company: string | null; gone_on: string | null; pokedex_binder: string | null }
     | undefined;
   if (!card) throw new ApiError(404, `cards/${cardId} not found`);
   if (card.gone_on) throw new ApiError(409, GONE);
   if (card.grading_company) throw new ApiError(409, "A graded card's slab doesn't fit in a pocket");
-  if (card.is_featured && card.in_pokedex_binder) {
-    throw new ApiError(409, "This card is in its Pokémon's slot, in the Pokédex binder");
+  if (card.pokedex_binder) {
+    throw new ApiError(409, `This card fills its Pokémon's pocket in ${card.pokedex_binder}`);
   }
 
   let pocket = 1;

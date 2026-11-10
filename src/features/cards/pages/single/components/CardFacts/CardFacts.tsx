@@ -6,7 +6,7 @@ import { useCurrency } from "@/hooks/useCurrency";
 import { formatCardNumber } from "@/lib/pokemon";
 import { formatDate } from "@/lib/utils";
 import { BinderPlaceLink } from "@/features/binders/components";
-import type { BinderPlace } from "@/features/binders/layout";
+import { inPokedexBinder, type BinderPlace } from "@/features/binders/layout";
 import { CONDITION_LABELS, FINISH_LABELS, LANGUAGE_LABELS } from "@/features/cards/constants";
 import { goneSummary } from "@/features/cards/gone";
 import { gradeLabel } from "@/features/cards/grading";
@@ -77,7 +77,7 @@ const CardFacts: React.FC<CardFactsProps> = ({ card, place, pulledFrom }) => {
           <Badge variant="neutral">{goneSummary(card, money.format)}</Badge>
         </Flex>
       )}
-      {card.is_featured && (
+      {inPokedexBinder(card) && (
         <Flex>
           {/* Kept outside, it isn't in the pocket, but it still counts. */}
           <Badge variant="primary">
