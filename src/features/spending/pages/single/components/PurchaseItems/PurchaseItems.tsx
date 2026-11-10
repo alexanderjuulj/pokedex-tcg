@@ -37,7 +37,9 @@ const PurchaseItems: React.FC<PurchaseItemsProps> = ({ items }) => {
           item.shipping_share ? `${price} and ${money.format(item.shipping_share)} shipping` : price,
           perPack !== null &&
             `${plural(item.pack_count!, "pack", "packs")}, ${money.format(perPack)} each`,
-          item.card_count ? `${plural(item.card_count, "card", "cards")} pulled` : null,
+          item.card_count
+            ? `${plural(item.card_count, "card", "cards")} pulled: ${item.slot_count} new, ${item.goal_count} you need`
+            : null,
         ].filter(Boolean);
         const content = (
           <>

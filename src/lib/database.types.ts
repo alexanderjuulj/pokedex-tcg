@@ -479,6 +479,7 @@ export type Database = {
           cost: number | null;
           card_count: number | null;
           slot_count: number | null;
+          goal_count: number | null;
           created_at: string | null;
           updated_at: string | null;
         };
@@ -496,6 +497,7 @@ export type Database = {
           item_count: number | null;
           card_count: number | null;
           slot_count: number | null;
+          goal_count: number | null;
           created_at: string | null;
           updated_at: string | null;
         };

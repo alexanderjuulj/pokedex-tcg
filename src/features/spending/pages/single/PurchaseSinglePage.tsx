@@ -61,7 +61,6 @@ const PurchaseSinglePage: React.FC = () => {
   const data = purchase.data;
   const lines = (items.data ?? []).filter((item) => item.purchase_id === id);
   const pulled = cards.data ?? [];
-  const slots = data.slot_count ?? 0;
 
   return (
     <PageLayout>
@@ -97,13 +96,6 @@ const PurchaseSinglePage: React.FC = () => {
               <Spinner />
             ) : (
               <Flex direction="column" gap="4">
-                {pulled.length > 0 && (
-                  <Text size="2">
-                    {slots
-                      ? `${slots} of them ${slots === 1 ? "is" : "are"} in the Pokédex: ${money.format(Math.round((data.total ?? 0) / slots))} a Pokémon.`
-                      : "None of them is in the Pokédex."}
-                  </Text>
-                )}
                 {pulled.length > 0 ? (
                   <CardGrid cards={pulled} showPokemon showFeatured />
                 ) : (

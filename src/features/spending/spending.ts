@@ -41,6 +41,26 @@ export function costPerPack(items: PurchaseItem[]): number | null {
   return packs ? Math.round(sum(withPacks, (item) => item.cost) / packs) : null;
 }
 
+// The lines with cards logged from them. The others are packs not opened yet
+// (or not logged), which would make every Pokémon look dearer.
+const opened = (items: PurchaseItem[]) => items.filter((item) => (item.card_count ?? 0) > 0);
+
+// What one Pokémon cost: the opened lines' cost over the Pokémon their cards
+// put in the Pokédex, new from any region (slot_count) or the goal's, the
+// ones you need (goal_count). Null without any.
+export function costPerPokemon(
+  items: PurchaseItem[],
+  count: "slot_count" | "goal_count",
+): number | null {
+  const lines = opened(items);
+  const pokemon = sum(lines, (item) => item[count]);
+  return pokemon ? Math.round(sum(lines, (item) => item.cost) / pokemon) : null;
+}
+
+// What the lines with no card logged yet cost: left out of costPerPokemon.
+export const unopenedCost = (items: PurchaseItem[]) =>
+  sum(items.filter((item) => !item.card_count), (item) => item.cost);
+
 // The Spending page's totals. "This year" is the calendar year of today.
 export function spendingTotals(purchases: Purchase[], items: PurchaseItem[]) {
   const year = todayIso().slice(0, 4);
@@ -53,7 +73,12 @@ export function spendingTotals(purchases: Purchase[], items: PurchaseItem[]) {
     packs: sum(purchases, (purchase) => purchase.pack_count),
     perPack: costPerPack(items),
     cards: sum(purchases, (purchase) => purchase.card_count),
-    slots: sum(purchases, (purchase) => purchase.slot_count),
+    // Pokémon new in the Pokédex, and of those the goal's.
+    newPokemon: sum(purchases, (purchase) => purchase.slot_count),
+    perNewPokemon: costPerPokemon(items, "slot_count"),
+    goalPokemon: sum(purchases, (purchase) => purchase.goal_count),
+    perGoalPokemon: costPerPokemon(items, "goal_count"),
+    unopened: unopenedCost(items),
   };
 }
 
@@ -66,6 +91,9 @@ export type SetSpending = {
   cost: number;
   perPack: number | null;
   cards: number;
+  // The goal's Pokémon its cards caught, and what each cost.
+  goalPokemon: number;
+  perGoalPokemon: number | null;
 };
 
 // What each set has cost, with the shipping, the most first.
@@ -83,6 +111,8 @@ export function spendingBySet(items: PurchaseItem[]): SetSpending[] {
       cost: sum(lines, (line) => line.cost),
       perPack: costPerPack(lines),
       cards: sum(lines, (line) => line.card_count),
+      goalPokemon: sum(lines, (line) => line.goal_count),
+      perGoalPokemon: costPerPokemon(lines, "goal_count"),
     }))
     .sort((a, b) => b.cost - a.cost || a.name.localeCompare(b.name));
 }

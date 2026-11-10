@@ -330,8 +330,10 @@ Then start the app again.
   - **Pulled from:** a card can say which purchase it came out of. A new
     card of a set starts at the newest purchase of that set (from the last
     30 days), so opening a pack and adding its cards one by one needs no
-    extra taps. A purchase then lists its cards, and what each Pokémon it
-    put in the Pokédex cost.
+    extra taps. The page then says what each new Pokémon cost, and each
+    Pokémon you need (the ones of your regions, that go in the binder):
+    in all, per set (which packs pay off) and per purchase. Packs with no
+    cards logged yet are left out until you open them.
   - **Currency:** amounts are in euros. To use another (dollars, pounds,
     kroner…), open Spending, tap ⋮ and pick it under Currency. It changes
     how the amounts are shown, not what they are: nothing is converted.

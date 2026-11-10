@@ -3,7 +3,7 @@ import { Flex, Text } from "@/components/ui";
 import type { Purchase, PurchaseItem } from "@/hooks/queries";
 import { useCurrency } from "@/hooks/useCurrency";
 import { formatDay } from "@/lib/utils";
-import { costPerPack } from "@/features/spending/spending";
+import { costPerPack, costPerPokemon } from "@/features/spending/spending";
 import styles from "../../PurchaseSingle.module.scss";
 
 type PurchaseFactsProps = {
@@ -15,6 +15,18 @@ const PurchaseFacts: React.FC<PurchaseFactsProps> = ({ purchase, items }) => {
   const money = useCurrency();
   const perPack = costPerPack(items);
   const packs = purchase.pack_count ?? 0;
+  // What a Pokémon its cards put in the Pokédex cost, once cards are logged.
+  const perPokemon = (count: number, cost: number | null) =>
+    cost === null ? "None" : `${count}, ${money.format(cost)} each`;
+  const pokemon: [string, string][] = purchase.card_count
+    ? [
+        ["New Pokémon", perPokemon(purchase.slot_count ?? 0, costPerPokemon(items, "slot_count"))],
+        [
+          "Pokémon you need",
+          perPokemon(purchase.goal_count ?? 0, costPerPokemon(items, "goal_count")),
+        ],
+      ]
+    : [];
   const facts: [string, string][] = [
     ["Bought", formatDay(purchase.bought_on!)],
     ["Where", purchase.shop ?? "—"],
@@ -25,6 +37,7 @@ const PurchaseFacts: React.FC<PurchaseFactsProps> = ({ purchase, items }) => {
       "Packs",
       perPack === null ? "None" : `${packs}, ${money.format(perPack)} each`,
     ],
+    ...pokemon,
   ];
 
   return (
