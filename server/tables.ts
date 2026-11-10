@@ -6,6 +6,8 @@ export const TABLES: readonly TableName[] = ["cards", "binders", "purchases", "s
 export const VIEWS: readonly ViewName[] = [
   "pokemon_overview",
   "owned_cards",
+  "card_details",
+  "gone_cards",
   "pokemon_catalog_cards",
   "set_overview",
   "binder_overview",

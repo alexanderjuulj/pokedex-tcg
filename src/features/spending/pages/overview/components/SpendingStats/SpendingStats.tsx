@@ -1,6 +1,6 @@
 import type React from "react";
 import { Flex, StatCard, StatCardGrid, Text } from "@/components/ui";
-import type { Purchase, PurchaseItem } from "@/hooks/queries";
+import type { Card, Purchase, PurchaseItem } from "@/hooks/queries";
 import { useCurrency } from "@/hooks/useCurrency";
 import { useGoal } from "@/features/pokedex/hooks";
 import { spendingTotals } from "@/features/spending/spending";
@@ -8,17 +8,20 @@ import { spendingTotals } from "@/features/spending/spending";
 type SpendingStatsProps = {
   purchases: Purchase[];
   items: PurchaseItem[];
+  // The cards sold, which bring some of it back.
+  sold: Card[];
 };
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
 // Values are strings: StatCard shows a bare 0 as still loading.
-const SpendingStats: React.FC<SpendingStatsProps> = ({ purchases, items }) => {
+const SpendingStats: React.FC<SpendingStatsProps> = ({ purchases, items, sold }) => {
   const money = useCurrency();
   const goal = useGoal();
   const totals = spendingTotals(purchases, items);
   const amount = (value: number | null) => (value === null ? "—" : money.format(value));
   const each = (value: number | null) => (value === null ? "—" : `${money.format(value)} each`);
+  const soldFor = sold.reduce((total, card) => total + (card.sold_for ?? 0), 0);
 
   return (
     <Flex direction="column" gap="1">
@@ -60,6 +63,11 @@ const SpendingStats: React.FC<SpendingStatsProps> = ({ purchases, items }) => {
           hint={`${totals.goalPokemon} from ${goal.label}`}
         />
       </StatCardGrid>
+      {soldFor > 0 && (
+        <Text size="2" color="gray">
+          {`${plural(sold.length, "card", "cards")} sold for ${money.format(soldFor)}: less that, the collection has cost ${money.format(totals.total - soldFor)}.`}
+        </Text>
+      )}
       {totals.unopened > 0 && (
         <Text size="2" color="gray">
           {`The ${money.format(totals.unopened)} of packs with no cards logged yet isn't in the cost per Pokémon.`}

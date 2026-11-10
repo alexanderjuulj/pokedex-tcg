@@ -11,3 +11,5 @@ export type CardCondition =
   | "played"
   | "poor";
 export type GradingCompany = "psa" | "bgs" | "cgc" | "other";
+// How a card left the collection (cards.gone_how).
+export type CardGoneHow = "sold" | "given" | "traded";

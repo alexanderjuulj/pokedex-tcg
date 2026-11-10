@@ -1,19 +1,22 @@
 import type React from "react";
 import { Link } from "react-router";
 import { Badge, Flex, Text } from "@/components/ui";
-import type { OwnedCard, PurchaseItem } from "@/hooks/queries";
+import type { Card, PurchaseItem } from "@/hooks/queries";
+import { useCurrency } from "@/hooks/useCurrency";
 import { formatCardNumber } from "@/lib/pokemon";
 import { formatDate } from "@/lib/utils";
 import { BinderPlaceLink } from "@/features/binders/components";
 import type { BinderPlace } from "@/features/binders/layout";
 import { CONDITION_LABELS, FINISH_LABELS, LANGUAGE_LABELS } from "@/features/cards/constants";
+import { goneSummary } from "@/features/cards/gone";
 import { gradeLabel } from "@/features/cards/grading";
 import type { CardCondition, CardFinish, CardLanguage } from "@/features/cards/types";
 import { pulledFromLabel } from "@/features/spending/spending";
 import styles from "../../CardSingle.module.scss";
 
 type CardFactsProps = {
-  card: OwnedCard;
+  // In the collection or gone.
+  card: Card;
   // Its pocket in a binder, if it's in one.
   place: BinderPlace | null;
   // The purchase line it was pulled from, if it says.
@@ -21,6 +24,7 @@ type CardFactsProps = {
 };
 
 const CardFacts: React.FC<CardFactsProps> = ({ card, place, pulledFrom }) => {
+  const money = useCurrency();
   const version = [
     FINISH_LABELS[card.finish as CardFinish],
     card.first_edition && "1st edition",
@@ -42,14 +46,19 @@ const CardFacts: React.FC<CardFactsProps> = ({ card, place, pulledFrom }) => {
     ["Language", LANGUAGE_LABELS[card.language as CardLanguage]],
     ["Grade", gradeLabel(card) ?? "Not graded"],
     ["Got it", card.acquired_on ? formatDate(card.acquired_on) : "—"],
-    [
-      "Kept in",
-      place ? (
-        <BinderPlaceLink place={place} />
-      ) : (
-        (card.location ?? (card.kept_outside ? "Outside the binders" : "—"))
-      ),
-    ],
+    // A gone card is kept nowhere: the badge above says where it went.
+    ...(card.gone_on
+      ? []
+      : [
+          [
+            "Kept in",
+            place ? (
+              <BinderPlaceLink place={place} />
+            ) : (
+              (card.location ?? (card.kept_outside ? "Outside the binders" : "—"))
+            ),
+          ] as [string, React.ReactNode],
+        ]),
     ...(pulledFrom
       ? [
           [
@@ -63,6 +72,11 @@ const CardFacts: React.FC<CardFactsProps> = ({ card, place, pulledFrom }) => {
 
   return (
     <Flex direction="column" gap="3" minWidth="0">
+      {card.gone_on && (
+        <Flex>
+          <Badge variant="neutral">{goneSummary(card, money.format)}</Badge>
+        </Flex>
+      )}
       {card.is_featured && (
         <Flex>
           {/* Kept outside, it isn't in the pocket, but it still counts. */}

@@ -310,6 +310,13 @@ Then start the app again.
     Pokédex, it still counts, and its pocket stays free for a loose card.
   - **A card that isn't in the list** (another print, a jumbo card) can be
     entered by hand.
+- **Selling or giving away a card** (a duplicate, a trade): open it and
+  pick Sell or give away in its menu. It leaves the collection and its
+  binder, but it isn't deleted: Cards → Gone keeps it, with who it went to
+  and what it sold for, and its purchase still counts it as pulled. If it
+  was a Pokémon's card in the Pokédex, your oldest other card of that
+  Pokémon takes the slot (or the Pokémon is missing again). Bring it back
+  from the same menu if a trade falls through.
 - **Sets** show how many of the Pokémon you still need are in each one, to
   help you pick which packs to open.
 - **Pack odds:** a Pokémon's Sets tab says about how many packs of each
@@ -326,7 +333,8 @@ Then start the app again.
   a line for each product in it (3 booster packs of a set, an Elite Trainer
   Box) and the shipping. The shipping is shared by what's in the order, by
   price, so a box carries more of it than a pack. The page adds it all up:
-  in all, this year, per pack and per set.
+  in all, this year, per pack and per set, and what the cards you sold
+  brought back.
   - **Pulled from:** a card can say which purchase it came out of. A new
     card of a set starts at the newest purchase of that set (from the last
     30 days), so opening a pack and adding its cards one by one needs no

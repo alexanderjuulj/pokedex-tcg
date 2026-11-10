@@ -1,4 +1,10 @@
-import type { CardCondition, CardFinish, CardLanguage, GradingCompany } from "../types";
+import type {
+  CardCondition,
+  CardFinish,
+  CardGoneHow,
+  CardLanguage,
+  GradingCompany,
+} from "../types";
 
 export const FINISH_LABELS: Record<CardFinish, string> = {
   normal: "Normal",
@@ -36,4 +42,10 @@ export const GRADING_LABELS: Record<GradingCompany, string> = {
   bgs: "BGS",
   cgc: "CGC",
   other: "Other",
+};
+
+export const GONE_LABELS: Record<CardGoneHow, string> = {
+  sold: "Sold",
+  given: "Given away",
+  traded: "Traded",
 };

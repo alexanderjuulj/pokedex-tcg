@@ -22,14 +22,18 @@ function integer(value: unknown, name: string): number {
   return value as number;
 }
 
+// A card sold, given away or traded is out of the collection.
+const GONE = "This card is gone: bring it back first";
+
 // Puts a card in its Pokémon's slot. The old featured card steps down first:
 // the unique index allows one per Pokémon.
 rpc.post("/set_featured_card", async (c) => {
   const id = integer((await body(c)).id, "id");
-  const card = db.prepare("select pokemon_id from cards where id = ?").get(id) as
-    | { pokemon_id: number }
+  const card = db.prepare("select pokemon_id, gone_on from cards where id = ?").get(id) as
+    | { pokemon_id: number; gone_on: string | null }
     | undefined;
   if (!card) throw new ApiError(404, `cards/${id} not found`);
+  if (card.gone_on) throw new ApiError(409, GONE);
 
   transaction(db, () => {
     db.prepare("update cards set is_featured = 0 where pokemon_id = ? and is_featured = 1").run(
@@ -87,16 +91,22 @@ rpc.post("/put_in_binder", async (c) => {
   if (binder.kind !== "free") throw new ApiError(400, `${binder.name} keeps its own order`);
   const card = db
     .prepare(
-      `select c.is_featured, c.grading_company, exists (
+      `select c.is_featured, c.grading_company, c.gone_on, exists (
          select 1 from binders b
          where b.kind = 'pokedex' and c.pokemon_id between b.first_pokemon_id and b.last_pokemon_id
        ) as in_pokedex_binder
        from cards c where c.id = ?`,
     )
     .get(cardId) as
-    | { is_featured: number; grading_company: string | null; in_pokedex_binder: number }
+    | {
+        is_featured: number;
+        grading_company: string | null;
+        gone_on: string | null;
+        in_pokedex_binder: number;
+      }
     | undefined;
   if (!card) throw new ApiError(404, `cards/${cardId} not found`);
+  if (card.gone_on) throw new ApiError(409, GONE);
   if (card.grading_company) throw new ApiError(409, "A graded card's slab doesn't fit in a pocket");
   if (card.is_featured && card.in_pokedex_binder) {
     throw new ApiError(409, "This card is in its Pokémon's slot, in the Pokédex binder");

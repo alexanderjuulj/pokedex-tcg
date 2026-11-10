@@ -16,6 +16,9 @@ import {
 export type Pokemon = Tables<"pokemon_overview">;
 // One of our cards, with its catalogue details filled in.
 export type OwnedCard = Tables<"owned_cards">;
+// Any card, in the collection or gone (sold, given away, traded): the same
+// row, with gone_on set for the ones let go.
+export type Card = Tables<"card_details">;
 // A printed card in the catalogue, as listed under one Pokémon.
 export type CatalogCard = Tables<"pokemon_catalog_cards">;
 // A set, with how many Pokémon of the goal (what the Pokédex binders cover)
@@ -72,10 +75,19 @@ export function usePokemonCards(pokemonId: number) {
   });
 }
 
-export function useOwnedCard(id: number) {
+// A card's page shows it whether it's here or gone.
+export function useCard(id: number) {
   return useQuery({
-    queryKey: ["owned_cards", id],
-    queryFn: () => api.get("owned_cards", id),
+    queryKey: ["card_details", id],
+    queryFn: () => api.get("card_details", id),
+  });
+}
+
+// The cards let go, the latest first.
+export function useGoneCards() {
+  return useQuery({
+    queryKey: ["gone_cards"],
+    queryFn: () => api.list("gone_cards", { order: ["-gone_on", "-updated_at"] }),
   });
 }
 
@@ -158,12 +170,13 @@ export function usePurchaseItems() {
   });
 }
 
-// The cards pulled from one purchase, in the order they were added.
+// The cards pulled from one purchase, in the order they were added, the ones
+// since let go too.
 export function usePurchaseCards(purchaseId: number) {
   return useQuery({
-    queryKey: ["owned_cards", { purchaseId }],
+    queryKey: ["card_details", { purchaseId }],
     queryFn: () =>
-      api.list("owned_cards", { where: { purchase_id: purchaseId }, order: ["created_at"] }),
+      api.list("card_details", { where: { purchase_id: purchaseId }, order: ["created_at"] }),
   });
 }
 

@@ -3,6 +3,9 @@ import { Link } from "react-router";
 import { Star } from "lucide-react";
 import type { OwnedCard } from "@/hooks/queries";
 import { formatCardNumber } from "@/lib/pokemon";
+import { cn } from "@/lib/utils";
+import { GONE_LABELS } from "../../constants";
+import type { CardGoneHow } from "../../types";
 import CardImage from "../CardImage/CardImage";
 import styles from "./CardGrid.module.scss";
 
@@ -17,7 +20,11 @@ type CardGridProps = {
 const CardGrid: React.FC<CardGridProps> = ({ cards, showPokemon = false, showFeatured = false }) => (
   <div className={styles.grid}>
     {cards.map((card) => (
-      <Link key={card.id} to={`/cards/${card.id}`} className={styles.item}>
+      <Link
+        key={card.id}
+        to={`/cards/${card.id}`}
+        className={cn(styles.item, card.gone_on && styles.item__gone)}
+      >
         <span className={styles.item_image}>
           <CardImage
             catalogCardId={card.catalog_card_id}
@@ -25,6 +32,11 @@ const CardGrid: React.FC<CardGridProps> = ({ cards, showPokemon = false, showFea
             size="low"
             alt={card.name ?? ""}
           />
+          {/* Sold, given away or traded: shown where a list mixes them in
+              (a purchase's cards, the Gone tab). */}
+          {card.gone_how && (
+            <span className={styles.item_gone}>{GONE_LABELS[card.gone_how as CardGoneHow]}</span>
+          )}
           {showFeatured && card.is_featured && (
             <span className={styles.item_featured} title="In the Pokédex slot">
               <Star size={14} fill="currentColor" aria-label="Featured" />

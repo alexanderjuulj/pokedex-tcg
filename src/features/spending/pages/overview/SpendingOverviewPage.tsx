@@ -3,7 +3,7 @@ import { useState } from "react";
 import { DropdownMenu, EmptyState, Spinner, Tabs } from "@/components/ui";
 import { PageHeader, PageLayout } from "@/components/layout";
 import { CURRENCIES } from "@/constants/currencies";
-import { usePurchaseItems, usePurchases, type Purchase } from "@/hooks/queries";
+import { useGoneCards, usePurchaseItems, usePurchases, type Purchase } from "@/hooks/queries";
 import { useCurrency } from "@/hooks/useCurrency";
 import { useFormDialog } from "@/hooks/useFormDialog";
 import { useTabParam } from "@/hooks/useTabParam";
@@ -16,13 +16,15 @@ const TABS = ["purchases", "sets"];
 const SpendingOverviewPage: React.FC = () => {
   const purchases = usePurchases();
   const items = usePurchaseItems();
+  // The cards sold: what they brought back.
+  const gone = useGoneCards();
   const money = useCurrency();
   const purchaseDialog = useFormDialog<Purchase>();
   const [choosingCurrency, setChoosingCurrency] = useState(false);
   const [tab, setTab] = useTabParam(TABS);
 
-  const isLoading = purchases.isLoading || items.isLoading || money.isLoading;
-  const error = purchases.error ?? items.error;
+  const isLoading = purchases.isLoading || items.isLoading || money.isLoading || gone.isLoading;
+  const error = purchases.error ?? items.error ?? gone.error;
   const list = purchases.data ?? [];
   const lines = items.data ?? [];
 
@@ -50,7 +52,11 @@ const SpendingOverviewPage: React.FC = () => {
         <EmptyState message={`Failed to load: ${error.message}`} />
       ) : list.length ? (
         <>
-          <SpendingStats purchases={list} items={lines} />
+          <SpendingStats
+            purchases={list}
+            items={lines}
+            sold={(gone.data ?? []).filter((card) => card.gone_how === "sold")}
+          />
           <Tabs
             value={tab}
             onValueChange={setTab}
