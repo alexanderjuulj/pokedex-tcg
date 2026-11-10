@@ -24,6 +24,7 @@ export function planPokedexBinders(
   picked: Region[],
   size: BinderSize,
   ownBinderEach: boolean,
+  regionPages = true,
 ): PlannedBinder[] {
   const { pocketsPerPage: perPage, pageCount: capacity } = size;
   if (!(perPage > 0 && capacity > 0)) return [];
@@ -35,7 +36,7 @@ export function planPokedexBinders(
       current !== null &&
       !ownBinderEach &&
       current.last + 1 === region.first &&
-      rangePageCount(current.first, region.last, perPage) <= capacity;
+      rangePageCount(current.first, region.last, perPage, regionPages) <= capacity;
     if (joins) {
       current!.last = region.last;
       continue;
@@ -53,7 +54,8 @@ export function planPokedexBinders(
     last_pokemon_id: range.last,
     pockets_per_page: perPage,
     page_count: capacity,
-    pages_used: rangePageCount(range.first, range.last, perPage),
+    region_pages: regionPages,
+    pages_used: rangePageCount(range.first, range.last, perPage, regionPages),
   }));
 }
 

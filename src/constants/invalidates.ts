@@ -6,6 +6,7 @@
 // too, and the purchases count the cards pulled from them.
 export const CARD_INVALIDATES = [
   "owned_cards",
+  "pokedex_pockets",
   "card_details",
   "gone_cards",
   "pokemon_overview",
@@ -18,7 +19,13 @@ export const CARD_INVALIDATES = [
 
 // A binder's cards show on the card pages too, and the Pokédex binders are the
 // goal the sets count.
-export const BINDER_INVALIDATES = ["binder_overview", "owned_cards", "card_details", "set_overview"];
+export const BINDER_INVALIDATES = [
+  "binder_overview",
+  "pokedex_pockets",
+  "owned_cards",
+  "card_details",
+  "set_overview",
+];
 
 // A purchase's lines are listed with it, and a deleted line leaves its cards
 // saying nothing about where they came from.

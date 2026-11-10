@@ -23,7 +23,6 @@ import styles from "./PokedexOverview.module.scss";
 
 const TABS = ["all", "caught", "missing"];
 
-const isCaught = (pokemon: Pokemon) => (pokemon.card_count ?? 0) > 0;
 const inRange = (pokemon: Pokemon, range: { first: number; last: number }) =>
   pokemon.id! >= range.first && pokemon.id! <= range.last;
 
@@ -53,6 +52,10 @@ const PokedexOverviewPage: React.FC = () => {
       { replace: true },
     );
 
+  // Caught: a card of it, and no empty pocket for it in a binder being
+  // collected (a Water binder still needs its own Squirtle).
+  const isCaught = (pokemon: Pokemon) =>
+    (pokemon.card_count ?? 0) > 0 && !goal.needed(pokemon.id!);
   const all = data ?? [];
   const collecting = all.filter((pokemon) => goal.inGoal(pokemon.id!));
   const caughtGoal = collecting.filter(isCaught).length;
@@ -137,7 +140,7 @@ const PokedexOverviewPage: React.FC = () => {
         />
       );
     }
-    if (!pokemonClass) return <PokedexGrid pokemon={pokemon} />;
+    if (!pokemonClass) return <PokedexGrid pokemon={pokemon} isCaught={isCaught} />;
     // A class spans the regions, so each region gets its own heading.
     return (
       <Flex direction="column" gap="5">
@@ -149,7 +152,7 @@ const PokedexOverviewPage: React.FC = () => {
                 <Text size="2" weight="bold" color="gray">
                   {candidate.label}
                 </Text>
-                <PokedexGrid pokemon={inRegion} />
+                <PokedexGrid pokemon={inRegion} isCaught={isCaught} />
               </Flex>
             )
           );

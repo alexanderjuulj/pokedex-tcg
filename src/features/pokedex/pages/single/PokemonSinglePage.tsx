@@ -3,7 +3,6 @@ import { useParams } from "react-router";
 import { Button, EmptyState, Flex, Spinner, Tabs, Text } from "@/components/ui";
 import { PageLayout } from "@/components/layout";
 import {
-  useBinders,
   usePokedex,
   usePokemon,
   usePokemonCards,
@@ -19,7 +18,7 @@ import {
   type CardDialogDefaults,
 } from "@/features/cards/components";
 import { BinderPlaceLink } from "@/features/binders/components";
-import { pocketPlace, pokedexBindersFor } from "@/features/binders/layout";
+import { useBinderLayout } from "@/features/binders/hooks";
 import { CatalogTab, PokemonAbout, PokemonHero, PokemonSets } from "./components";
 import styles from "./PokemonSingle.module.scss";
 
@@ -31,7 +30,7 @@ const PokemonSinglePage: React.FC = () => {
   const pokemon = usePokemon(id);
   const pokedex = usePokedex();
   const cards = usePokemonCards(id);
-  const binders = useBinders();
+  const layout = useBinderLayout();
   const cardDialog = useFormDialog<OwnedCard, CardDialogDefaults>();
   // A catalogue card up close before it's added; `edit` opens it on a card.
   const previewDialog = useFormDialog<CatalogCard>();
@@ -56,10 +55,12 @@ const PokemonSinglePage: React.FC = () => {
 
   const data = pokemon.data;
   const owned = cards.data ?? [];
-  // Its pocket in the Pokédex binder keeping one (a binder being collected
-  // first).
-  const pocketBinder = pokedexBindersFor(id, binders.data ?? [])[0];
-  const place = pocketBinder ? pocketPlace(pocketBinder, id) : null;
+  // Its pocket in each Pokédex binder keeping one (the ones being collected
+  // first), and whether a card is in it.
+  const pockets = layout.bindersFor(id).map((binder) => ({
+    place: layout.place(binder, id)!,
+    filled: owned.some((card) => card.binder_id === binder.id && !card.kept_outside),
+  }));
 
   return (
     // Not PageLayout: the hero and the sheet meet without a gap.
@@ -77,16 +78,12 @@ const PokemonSinglePage: React.FC = () => {
               content: (
                 <Flex direction="column" gap="4">
                   {/* Where its card sits, or will. */}
-                  {place && (
-                    <Text size="2" color="gray">
-                      {owned.some(
-                        (card) => card.binder_id === pocketBinder?.id && !card.kept_outside,
-                      )
-                        ? "In the binder: "
-                        : "Its pocket: "}
-                      <BinderPlaceLink place={place} />
+                  {pockets.map((pocket) => (
+                    <Text key={pocket.place.binder.id} size="2" color="gray">
+                      {pocket.filled ? "In the binder: " : "Its pocket: "}
+                      <BinderPlaceLink place={pocket.place} />
                     </Text>
-                  )}
+                  ))}
                   {cards.isLoading ? (
                     <Spinner />
                   ) : owned.length ? (

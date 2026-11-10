@@ -2,8 +2,7 @@ import type { Binder, OwnedCard } from "@/hooks/queries";
 import {
   freePlace,
   inPokedexBinder,
-  pocketPlace,
-  pokedexBindersFor,
+  type BinderLayout,
   type BinderPlace,
 } from "@/features/binders/layout";
 
@@ -58,7 +57,7 @@ export function placementChoices(
   card: OwnedCard | null,
   pokemonId: number,
   graded: boolean,
-  binders: Binder[],
+  layout: BinderLayout,
   cards: OwnedCard[],
 ): {
   items: Choice[];
@@ -66,10 +65,11 @@ export function placementChoices(
   hint: (placement: Placement) => string | null;
   plan: (placement: Placement) => PlacementPlan;
 } {
-  // This Pokémon's pockets, each with the other card filling it, if any.
-  const pockets = pokedexBindersFor(pokemonId, binders).map((binder) => ({
+  // This Pokémon's pockets, the binders being collected first, each with the
+  // other card filling it, if any.
+  const pockets = layout.bindersFor(pokemonId).map((binder) => ({
     binder,
-    place: pocketPlace(binder, pokemonId)!,
+    place: layout.place(binder, pokemonId)!,
     holder:
       cards.find(
         (other) =>
@@ -123,11 +123,20 @@ export function placementChoices(
     };
   }
 
+  // Another binder's pocket for it, taken over from the card there.
+  const swaps = (except: number | null): Choice[] =>
+    pockets
+      .filter((pocket) => pocket.binder.id !== except && pocket.holder)
+      .map((pocket) => ({
+        value: `pocket:${pocket.binder.id!}`,
+        label: `${placeLabel(pocket.place)}, instead of the card there`,
+      }));
+
   if (own) {
     const value: Placement = `pocket:${own.binder.id!}`;
     const holds = fills === own.binder.id;
     return {
-      items: [{ value, label: placeLabel(own.place) }, NONE],
+      items: [{ value, label: placeLabel(own.place) }, ...swaps(own.binder.id!), NONE],
       initial: holds && card?.kept_outside ? "none" : value,
       hint: (placement) =>
         placement === "none"
@@ -139,7 +148,7 @@ export function placementChoices(
     };
   }
 
-  const freeBinders = binders.filter((binder) => binder.kind === "free");
+  const freeBinders = layout.binders.filter((binder) => binder.kind === "free");
   const items: Choice[] = freeBinders.map((binder) => {
     const here = card?.binder_id === binder.id && card.binder_pocket;
     const place = freePlace(binder, here || nextPocket(binder, cards, card?.id ?? null));

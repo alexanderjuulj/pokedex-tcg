@@ -36,17 +36,17 @@ const BindersOverviewPage: React.FC = () => {
           A new binder holds extras and duplicates: put a card in from its page, and it goes in
           the first empty pocket.
         </Text>
-        {!goal.isLoading && goal.others.length > 0 && (
+        {!goal.isLoading && (
           <>
             <Text size="2" color="gray">
-              {`A Pokédex binder keeps a pocket for every Pokémon of its regions, and those are the Pokémon the Pokédex counts. ${
+              {`A Pokédex binder keeps a pocket for every Pokémon of its regions, or of a type or a class, and those are the Pokémon the Pokédex counts. ${
                 goal.isCollecting
-                  ? `You collect ${goal.label}.`
-                  : "Every one you have is finished: start a new one for another region."
+                  ? `You collect for ${goal.label}.`
+                  : "Every one you have is finished: start something new."
               }`}
             </Text>
             <Button variant="secondary" onClick={() => setCollectingMore(true)}>
-              {goal.isCollecting ? "Collect more regions" : "Start a new binder"}
+              Collect something new
             </Button>
           </>
         )}

@@ -24,6 +24,9 @@ export type Database = {
           updated_at: string;
           page_count: number | null;
           finished_on: string | null;
+          pokemon_type: string | null;
+          pokemon_class: string | null;
+          region_pages: boolean;
         };
         Insert: {
           id?: never;
@@ -36,6 +39,9 @@ export type Database = {
           updated_at?: string;
           page_count?: number | null;
           finished_on?: string | null;
+          pokemon_type?: string | null;
+          pokemon_class?: string | null;
+          region_pages?: boolean;
         };
         Update: {
           id?: never;
@@ -48,6 +54,9 @@ export type Database = {
           updated_at?: string;
           page_count?: number | null;
           finished_on?: string | null;
+          pokemon_type?: string | null;
+          pokemon_class?: string | null;
+          region_pages?: boolean;
         };
       };
       card_sets: {
@@ -386,11 +395,15 @@ export type Database = {
           page_count: number | null;
           first_pokemon_id: number | null;
           last_pokemon_id: number | null;
+          pokemon_type: string | null;
+          pokemon_class: string | null;
+          region_pages: boolean | null;
           finished_on: string | null;
           created_at: string | null;
           updated_at: string | null;
           card_count: number | null;
           caught_count: number | null;
+          pokemon_count: number | null;
         };
       };
       binder_pokemon: {
@@ -529,6 +542,15 @@ export type Database = {
           sold_for: number | null;
           created_at: string | null;
           updated_at: string | null;
+        };
+      };
+      pokedex_pockets: {
+        Row: {
+          binder_id: number | null;
+          pokemon_id: number | null;
+          finished_on: string | null;
+          card_id: number | null;
+          kept_outside: boolean | null;
         };
       };
       pokemon_catalog_cards: {

@@ -9,9 +9,15 @@ export function useBinderPlan(regions: Region[]) {
   const [pockets, setPockets] = useState("9");
   const [pages, setPages] = useState("40");
   const [ownBinderEach, setOwnBinderEach] = useState(false);
+  const [regionPages, setRegionPages] = useState(true);
   const pageCount = Number(pages);
   const plan = Number.isInteger(pageCount)
-    ? planPokedexBinders(regions, { pocketsPerPage: Number(pockets), pageCount }, ownBinderEach)
+    ? planPokedexBinders(
+        regions,
+        { pocketsPerPage: Number(pockets), pageCount },
+        ownBinderEach,
+        regionPages,
+      )
     : [];
   return {
     plan,
@@ -22,6 +28,8 @@ export function useBinderPlan(regions: Region[]) {
       onPagesChange: setPages,
       ownBinderEach,
       onOwnBinderEachChange: setOwnBinderEach,
+      regionPages,
+      onRegionPagesChange: setRegionPages,
     },
   };
 }

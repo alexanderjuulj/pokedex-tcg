@@ -60,7 +60,7 @@ const SpendingStats: React.FC<SpendingStatsProps> = ({ purchases, items, sold })
         <StatCard
           label="Pokémon you need"
           value={each(totals.perGoalPokemon)}
-          hint={`${totals.goalPokemon} from ${goal.binderLabel}`}
+          hint={`${totals.goalPokemon} for ${goal.binderLabel}`}
         />
       </StatCardGrid>
       {soldFor > 0 && (

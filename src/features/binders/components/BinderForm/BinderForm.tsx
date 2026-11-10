@@ -1,10 +1,10 @@
 import type React from "react";
 import { useState } from "react";
-import { Button, Field, Flex, Form, Input, Select, Text } from "@/components/ui";
+import { Button, Checkbox, Field, Flex, Form, Input, Select, Text } from "@/components/ui";
 import { BINDER_INVALIDATES } from "@/constants/invalidates";
 import { useTableMutations, type Binder } from "@/hooks/queries";
 import { POCKETS_LABELS } from "../../constants";
-import { rangePageCount } from "../../layout";
+import { useBinderLayout } from "../../hooks";
 
 const POCKET_ITEMS = Object.entries(POCKETS_LABELS).map(([value, label]) => ({ value, label }));
 
@@ -17,10 +17,13 @@ type BinderFormProps = {
 
 const BinderForm: React.FC<BinderFormProps> = ({ binder, onDone }) => {
   const { create, update } = useTableMutations("binders", BINDER_INVALIDATES);
+  const layout = useBinderLayout();
   const [name, setName] = useState(binder?.name ?? "");
   const [pockets, setPockets] = useState(String(binder?.pockets_per_page ?? 9));
   // A Pokédex binder's size, so it shows how full it is.
   const [pages, setPages] = useState(binder?.page_count ? String(binder.page_count) : "");
+  // A Pokédex binder's layout: each region on a fresh page, or one run.
+  const [regionPages, setRegionPages] = useState(binder?.region_pages ?? true);
   const [error, setError] = useState<string | null>(null);
   const isPokedex = binder?.kind === "pokedex";
 
@@ -29,10 +32,10 @@ const BinderForm: React.FC<BinderFormProps> = ({ binder, onDone }) => {
     const values = {
       name: name.trim(),
       pockets_per_page: Number(pockets),
-      ...(isPokedex && { page_count: pages.trim() ? Number(pages) : null }),
+      ...(isPokedex && { page_count: pages.trim() ? Number(pages) : null, region_pages: regionPages }),
     };
     if (isPokedex && values.page_count) {
-      const needed = rangePageCount(binder.first_pokemon_id!, binder.last_pokemon_id!, Number(pockets));
+      const needed = layout.pageCount(binder, Number(pockets), regionPages);
       if (needed > values.page_count) {
         setError(`It needs ${needed} pages with ${pockets} pockets per page.`);
         return;
@@ -66,6 +69,18 @@ const BinderForm: React.FC<BinderFormProps> = ({ binder, onDone }) => {
             placeholder="Both sides of every sheet"
           />
         </Field>
+      )}
+      {isPokedex && (
+        <Flex direction="column" gap="1">
+          <Checkbox
+            label="Each region on a fresh page"
+            checked={regionPages}
+            onCheckedChange={setRegionPages}
+          />
+          <Text size="2" color="gray">
+            Changing it moves the Pokémon to other pages and pockets.
+          </Text>
+        </Flex>
       )}
       {!binder && (
         <Text size="2" color="gray">

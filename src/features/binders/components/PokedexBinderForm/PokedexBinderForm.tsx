@@ -1,6 +1,6 @@
 import type React from "react";
 import { useState } from "react";
-import { Button, Flex, Form, Text } from "@/components/ui";
+import { Button, Field, Flex, Form, Select, Text } from "@/components/ui";
 import { useAddPokedexBinders } from "@/hooks/queries";
 import { useGoal } from "@/features/pokedex/hooks";
 import type { Region } from "@/features/pokedex/types";
@@ -8,14 +8,45 @@ import { useBinderPlan } from "../../hooks";
 import BinderPlanList from "../BinderPlanList/BinderPlanList";
 import BinderSizeFields from "../BinderSizeFields/BinderSizeFields";
 import RegionPicker from "../RegionPicker/RegionPicker";
+import RuleBinderForm from "../RuleBinderForm/RuleBinderForm";
+
+type Collect = "regions" | "type" | "class";
+
+const COLLECT_ITEMS: { value: Collect; label: string }[] = [
+  { value: "regions", label: "Regions" },
+  { value: "type", label: "A type: every Water Pokémon…" },
+  { value: "class", label: "A class: the starters, the legendaries…" },
+];
 
 type PokedexBinderFormProps = {
   onDone: () => void;
 };
 
-// More regions to collect, after the setup: Pokédex binders for them, which
-// widen the goal.
+// Something new to collect, after the setup: Pokédex binders for more
+// regions, or one for a type or a class. They widen the goal.
 const PokedexBinderForm: React.FC<PokedexBinderFormProps> = ({ onDone }) => {
+  const [collect, setCollect] = useState<Collect>("regions");
+  return (
+    <Flex direction="column" gap="4">
+      <Field label="What to collect">
+        <Select
+          value={collect}
+          onValueChange={(value) => setCollect(value as Collect)}
+          items={COLLECT_ITEMS}
+          required
+        />
+      </Field>
+      {collect === "regions" ? (
+        <RegionBinderForm onDone={onDone} />
+      ) : (
+        <RuleBinderForm key={collect} rule={collect} onDone={onDone} />
+      )}
+    </Flex>
+  );
+};
+
+// More regions: their Pokédex binders, as the setup plans them.
+const RegionBinderForm: React.FC<PokedexBinderFormProps> = ({ onDone }) => {
   const goal = useGoal();
   const add = useAddPokedexBinders();
   const [regions, setRegions] = useState<Region[]>([]);

@@ -11,7 +11,6 @@ import {
 import { PageHeader, PageLayout } from "@/components/layout";
 import { CARD_INVALIDATES } from "@/constants/invalidates";
 import {
-  useBinders,
   useCard,
   usePurchaseItems,
   usePutInBinder,
@@ -30,7 +29,8 @@ import {
   LetGoDialog,
   type CardDialogDefaults,
 } from "@/features/cards/components";
-import { cardPlace, freePlace, inPokedexBinder, pokedexBindersFor } from "@/features/binders/layout";
+import { useBinderLayout } from "@/features/binders/hooks";
+import { freePlace, inPokedexBinder } from "@/features/binders/layout";
 import { CardFacts } from "./components";
 import styles from "./CardSingle.module.scss";
 
@@ -41,7 +41,7 @@ const CardSinglePage: React.FC = () => {
   const cardDialog = useFormDialog<OwnedCard, CardDialogDefaults>();
   const letGoDialog = useFormDialog<Card>();
   const putInPocket = usePutInPocket();
-  const binders = useBinders();
+  const layout = useBinderLayout();
   const purchaseItems = usePurchaseItems();
   const putInBinder = usePutInBinder();
   const { remove, update } = useTableMutations("cards", CARD_INVALIDATES);
@@ -70,7 +70,7 @@ const CardSinglePage: React.FC = () => {
   }
 
   const data = card.data;
-  const allBinders = binders.data ?? [];
+  const allBinders = layout.binders;
   const pulledFrom = purchaseItems.data?.find((item) => item.id === data.purchase_item_id) ?? null;
   const deleteItem = { label: "Delete", onSelect: () => deleteDialog.request(data), danger: true };
 
@@ -132,12 +132,14 @@ const CardSinglePage: React.FC = () => {
           : { binder_id: null, binder_pocket: null, kept_outside: true },
       }),
   };
-  // The Pokédex binders keeping a pocket for its Pokémon, to put it in
-  // instead of the card there.
-  const pocketItems =
-    inSlot || graded
-      ? []
-      : pokedexBindersFor(data.pokemon_id!, allBinders).map((binder) => ({
+  // The Pokédex binders keeping a pocket for its Pokémon (but the one it's
+  // in), to put it in instead of the card there.
+  const pocketItems = graded
+    ? []
+    : layout
+        .bindersFor(data.pokemon_id!)
+        .filter((binder) => binder.id !== data.binder_id)
+        .map((binder) => ({
           label: `Put in its pocket in ${binder.name}`,
           onSelect: () => putInPocket.mutate({ card_id: data.id!, binder_id: binder.id! }),
         }));
@@ -203,7 +205,7 @@ const CardSinglePage: React.FC = () => {
             alt={data.name ?? ""}
           />
         </div>
-        <CardFacts card={data} place={cardPlace(data, allBinders)} pulledFrom={pulledFrom} />
+        <CardFacts card={data} place={layout.cardPlace(data)} pulledFrom={pulledFrom} />
       </Grid>
       <AlertDialog title="Delete card" {...deleteDialog.props} />
       <CardDialog {...cardDialog.props} />

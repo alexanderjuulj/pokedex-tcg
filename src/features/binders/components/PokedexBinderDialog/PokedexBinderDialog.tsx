@@ -8,7 +8,7 @@ type PokedexBinderDialogProps = {
 };
 
 const PokedexBinderDialog: React.FC<PokedexBinderDialogProps> = ({ open, onOpenChange }) => (
-  <Dialog open={open} onOpenChange={onOpenChange} title="Collect more regions">
+  <Dialog open={open} onOpenChange={onOpenChange} title="Collect something new">
     <PokedexBinderForm onDone={() => onOpenChange(false)} />
   </Dialog>
 );

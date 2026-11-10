@@ -16,22 +16,28 @@ import {
 import { useConfirmDelete } from "@/hooks/useConfirmDelete";
 import { useFormDialog } from "@/hooks/useFormDialog";
 import { useTabParam } from "@/hooks/useTabParam";
-import { formatDexNumber } from "@/lib/pokemon";
 import { toast } from "@/lib/toast";
 import { formatDate, todayIso } from "@/lib/utils";
 import { BinderDialog } from "@/features/binders/components";
 import { BINDER_KIND_LABELS } from "@/features/binders/constants";
-import { pagesLabel, pokedexPages, pokedexSections } from "@/features/binders/layout";
+import { useBinderLayout } from "@/features/binders/hooks";
+import type { BinderLayout } from "@/features/binders/layout";
+import { binderRule } from "@/features/binders/rule";
 import type { BinderKind } from "@/features/binders/types";
 import { BinderPages, type Pocket } from "./components";
 
 // A Pokédex binder: each Pokémon's pocket holds the card put in it (unless
 // it's kept outside the binder, in a top loader or a slab).
-function pokedexPockets(binder: Binder, cards: OwnedCard[], names: Map<number, string>) {
+function pokedexPockets(
+  binder: Binder,
+  layout: BinderLayout,
+  cards: OwnedCard[],
+  names: Map<number, string>,
+) {
   const slots = new Map(
     cards.filter((card) => card.binder_id === binder.id).map((card) => [card.pokemon_id, card]),
   );
-  return pokedexPages(binder).map((page) =>
+  return layout.pages(binder).map((page) =>
     page.map((pokemonId): Pocket => {
       if (pokemonId === null) return { kind: "unused" };
       const card = slots.get(pokemonId);
@@ -68,6 +74,7 @@ const BinderSinglePage: React.FC = () => {
   const binder = useBinder(id);
   const cards = useOwnedCards();
   const pokedex = usePokedex();
+  const layout = useBinderLayout();
   const binderDialog = useFormDialog<Binder>();
   const { remove, update } = useTableMutations("binders", BINDER_INVALIDATES, { silent: true });
   const binders = useBinders();
@@ -88,7 +95,7 @@ const BinderSinglePage: React.FC = () => {
   const pages: Pocket[][] = !data
     ? []
     : data.kind === "pokedex"
-      ? pokedexPockets(data, cards.data ?? [], names)
+      ? pokedexPockets(data, layout, cards.data ?? [], names)
       : freePockets(data, cards.data ?? []);
   // ?page= keeps the place (and comes from a card's "page 3, pocket 7").
   const [pageParam, setPageParam] = useTabParam(
@@ -103,7 +110,7 @@ const BinderSinglePage: React.FC = () => {
     return pocket ? { page: Number(searchParams.get("page") ?? 1), pocket } : null;
   });
 
-  if (binder.isLoading || cards.isLoading || pokedex.isLoading) {
+  if (binder.isLoading || cards.isLoading || layout.isLoading) {
     return (
       <PageLayout>
         <Spinner />
@@ -121,16 +128,15 @@ const BinderSinglePage: React.FC = () => {
 
   const page = Number(pageParam);
   const kind = data.kind as BinderKind;
-  const total = data.last_pokemon_id! - data.first_pokemon_id! + 1;
+  const total = data.pokemon_count ?? 0;
   const caught = data.caught_count ?? 0;
   const desc =
     kind !== "pokedex"
       ? `${BINDER_KIND_LABELS[kind]} · ${data.card_count} ${data.card_count === 1 ? "card" : "cards"} · ` +
         `${pages.length} ${pages.length === 1 ? "page" : "pages"}`
       : data.finished_on
-        ? `Finished ${formatDate(data.finished_on)} · ${caught} of ${total} caught · ${pagesLabel(data)}`
-        : `${formatDexNumber(data.first_pokemon_id!)}–${formatDexNumber(data.last_pokemon_id!)} · ` +
-          `${data.card_count} of ${total} cards · ${pagesLabel(data)}`;
+        ? `Finished ${formatDate(data.finished_on)} · ${caught} of ${total} caught · ${layout.pagesLabel(data)}`
+        : `${binderRule(data)} · ${data.card_count} of ${total} cards · ${layout.pagesLabel(data)}`;
 
   // Finished, a Pokédex binder stays as it is but leaves the goal: what the
   // Pokédex, the sets and the pack chooser count.
@@ -182,7 +188,7 @@ const BinderSinglePage: React.FC = () => {
       />
       {kind === "pokedex" && (
         <Flex gap="2" wrap="wrap">
-          {pokedexSections(data).map((section) => (
+          {layout.sections(data).map((section) => (
             <Button key={section.label} variant="secondary" onClick={() => setPageParam(String(section.page))}>
               {`${section.label} · page ${section.page}`}
             </Button>

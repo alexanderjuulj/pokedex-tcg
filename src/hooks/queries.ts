@@ -26,6 +26,9 @@ export type CatalogCard = Tables<"pokemon_catalog_cards">;
 export type CardSet = Tables<"set_overview">;
 // A virtual binder, with how many cards it holds.
 export type Binder = Tables<"binder_overview">;
+// A Pokédex binder's pocket for one Pokémon, with the card filling it (none:
+// empty).
+export type PokedexPocket = Tables<"pokedex_pockets">;
 // A shop visit or an online order, with what it cost in all.
 export type Purchase = Tables<"purchase_overview">;
 // A line of a purchase (3 boosters of a set), with its share of the shipping.
@@ -153,6 +156,14 @@ export function useBinders() {
   return useQuery({
     queryKey: ["binder_overview"],
     queryFn: () => api.list("binder_overview", { order: ["-kind", "created_at"] }),
+  });
+}
+
+// Every Pokédex binder's pockets: a few hundred, what "you need" counts.
+export function usePokedexPockets() {
+  return useQuery({
+    queryKey: ["pokedex_pockets"],
+    queryFn: () => api.list("pokedex_pockets"),
   });
 }
 
@@ -329,6 +340,12 @@ export type PokedexBinderPlan = {
   last_pokemon_id: number;
   pockets_per_page: number;
   page_count: number | null;
+  // A type or class binder keeps pockets only for the Pokémon of its range
+  // that are of it.
+  pokemon_type?: string | null;
+  pokemon_class?: string | null;
+  // Each region on a fresh page (the default).
+  region_pages?: boolean;
 };
 
 // Makes the planned Pokédex binders in one transaction (server/rpc.ts).

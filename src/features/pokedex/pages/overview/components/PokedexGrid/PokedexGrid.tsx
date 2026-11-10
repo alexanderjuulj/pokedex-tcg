@@ -5,12 +5,13 @@ import styles from "./PokedexGrid.module.scss";
 
 type PokedexGridProps = {
   pokemon: Pokemon[];
+  isCaught: (pokemon: Pokemon) => boolean;
 };
 
-const PokedexGrid: React.FC<PokedexGridProps> = ({ pokemon }) => (
+const PokedexGrid: React.FC<PokedexGridProps> = ({ pokemon, isCaught }) => (
   <div className={styles.grid}>
     {pokemon.map((entry) => (
-      <PokemonTile key={entry.id} pokemon={entry} />
+      <PokemonTile key={entry.id} pokemon={entry} caught={isCaught(entry)} />
     ))}
   </div>
 );

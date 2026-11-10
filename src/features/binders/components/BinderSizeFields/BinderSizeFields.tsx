@@ -9,8 +9,12 @@ type BinderSizeFieldsProps = {
   onPocketsChange: (value: string) => void;
   pages: string;
   onPagesChange: (value: string) => void;
-  ownBinderEach: boolean;
-  onOwnBinderEachChange: (value: boolean) => void;
+  // For several regions: each its own binder, each on a fresh page. Left
+  // out where there's one binder of one kind (a type, a class).
+  ownBinderEach?: boolean;
+  onOwnBinderEachChange?: (value: boolean) => void;
+  regionPages: boolean;
+  onRegionPagesChange: (value: boolean) => void;
 };
 
 // The size of the binders to fill: pockets per page and how many pages.
@@ -21,6 +25,8 @@ const BinderSizeFields: React.FC<BinderSizeFieldsProps> = ({
   onPagesChange,
   ownBinderEach,
   onOwnBinderEachChange,
+  regionPages,
+  onRegionPagesChange,
 }) => {
   const cards = Number(pockets) * Number(pages);
   return (
@@ -44,10 +50,17 @@ const BinderSizeFields: React.FC<BinderSizeFieldsProps> = ({
         {`Count both sides of every sheet: a 360-card binder with 9 pockets has 40 pages.` +
           (Number.isInteger(cards) && cards > 0 ? ` This one holds ${cards} cards.` : "")}
       </Text>
+      {onOwnBinderEachChange && (
+        <Checkbox
+          label="Give each region its own binder"
+          checked={Boolean(ownBinderEach)}
+          onCheckedChange={onOwnBinderEachChange}
+        />
+      )}
       <Checkbox
-        label="Give each region its own binder"
-        checked={ownBinderEach}
-        onCheckedChange={onOwnBinderEachChange}
+        label="Each region on a fresh page"
+        checked={regionPages}
+        onCheckedChange={onRegionPagesChange}
       />
     </Flex>
   );

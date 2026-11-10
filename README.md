@@ -354,7 +354,15 @@ Then start the app again.
   - **Currency:** amounts are in euros. To use another (dollars, pounds,
     kroner…), open Spending, tap ⋮ and pick it under Currency. It changes
     how the amounts are shown, not what they are: nothing is converted.
-- **More regions** can be added any time: Binders → Collect more regions.
+- **Something new to collect** can be added any time: Binders → Collect
+  something new. More regions, or one binder for a type ("every Water
+  Pokémon") or a class (the starters, the legendaries, the mythical
+  ones…), over the regions you pick. Each Pokémon gets a pocket for a card
+  of its own, even when another binder has one for it too: a Water binder
+  needs its own Squirtle next to Kanto's. A new card goes in the first
+  binder with an empty pocket for it, and "you need" everywhere means an
+  empty pocket in a binder you collect. A binder can keep each region on a
+  fresh page, or run straight through.
 - **Finishing a binder:** when it's done, or you can't get the last few,
   open it and pick Finish this binder in its menu. It stays as it is, pages
   and cards, so you can still find a card in it, but its Pokémon stop

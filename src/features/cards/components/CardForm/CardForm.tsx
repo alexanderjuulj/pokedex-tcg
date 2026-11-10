@@ -15,7 +15,6 @@ import {
 } from "@/components/ui";
 import { CARD_INVALIDATES } from "@/constants/invalidates";
 import {
-  useBinders,
   useCatalogCardPokemon,
   useOwnedCards,
   usePokedex,
@@ -35,6 +34,7 @@ import {
   LANGUAGE_LABELS,
 } from "../../constants";
 import { pulledFromChoices } from "@/features/spending/spending";
+import { useBinderLayout } from "@/features/binders/hooks";
 import { placementChoices, type Placement } from "../../placement";
 import type { CardFinish } from "../../types";
 import CardImage from "../CardImage/CardImage";
@@ -118,7 +118,7 @@ const CardForm: React.FC<CardFormProps> = ({ card, pokemonId: initialPokemonId, 
 
   // Which binder it goes in. Until one is picked (or when the pick no longer
   // fits, after "Counts for" or "Grading" changes), where it is or belongs.
-  const binders = useBinders();
+  const layout = useBinderLayout();
   const owned = useOwnedCards();
   const putInPocket = usePutInPocket();
   const putInBinder = usePutInBinder();
@@ -127,7 +127,7 @@ const CardForm: React.FC<CardFormProps> = ({ card, pokemonId: initialPokemonId, 
     card,
     Number(pokemonId),
     grading !== "none",
-    binders.data ?? [],
+    layout,
     owned.data ?? [],
   );
   const placement =

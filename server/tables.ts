@@ -11,6 +11,7 @@ export const VIEWS: readonly ViewName[] = [
   "pokemon_catalog_cards",
   "set_overview",
   "binder_overview",
+  "pokedex_pockets",
   "purchase_overview",
   "purchase_item_overview",
 ];

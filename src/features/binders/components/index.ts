@@ -6,3 +6,4 @@ export { default as BinderSizeFields } from "./BinderSizeFields/BinderSizeFields
 export { default as PokedexBinderDialog } from "./PokedexBinderDialog/PokedexBinderDialog";
 export { default as PokedexBinderForm } from "./PokedexBinderForm/PokedexBinderForm";
 export { default as RegionPicker } from "./RegionPicker/RegionPicker";
+export { default as RuleBinderForm } from "./RuleBinderForm/RuleBinderForm";

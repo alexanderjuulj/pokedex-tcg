@@ -59,9 +59,6 @@ const SetSinglePage: React.FC = () => {
 
   const data = set.data;
   const names = new Map((pokedex.data ?? []).map((pokemon) => [pokemon.id, pokemon.name ?? ""]));
-  const caught = new Set(
-    (pokedex.data ?? []).filter((pokemon) => (pokemon.card_count ?? 0) > 0).map((pokemon) => pokemon.id),
-  );
   const query = fold(search.trim());
   const cards = (catalog.data ?? [])
     .filter((card) => !only || card.pokemon_id === only)
@@ -76,11 +73,12 @@ const SetSinglePage: React.FC = () => {
         a.pokemon_id! - b.pokemon_id! ||
         (a.local_id ?? "").localeCompare(b.local_id ?? "", undefined, { numeric: true }),
     );
-  // The goal (the Pokédex binders' Pokémon) first; the other regions' cards
+  // The goal (the Pokémon the binders being collected keep a pocket for)
+  // first, the ones with an empty pocket before the rest; the others' cards
   // after, for logging a whole pack.
   const inGoal = (card: CatalogCard) => goal.inGoal(card.pokemon_id!);
-  const need = cards.filter((card) => inGoal(card) && !caught.has(card.pokemon_id));
-  const have = cards.filter((card) => inGoal(card) && caught.has(card.pokemon_id));
+  const need = cards.filter((card) => inGoal(card) && goal.needed(card.pokemon_id!));
+  const have = cards.filter((card) => inGoal(card) && !goal.needed(card.pokemon_id!));
   const others = cards.filter((card) => !inGoal(card));
   const missing = data.missing_count ?? 0;
   // Under each card: the Pokémon it's listed for (the card's own name is on
@@ -108,7 +106,7 @@ const SetSinglePage: React.FC = () => {
             {!goal.isCollecting
               ? "Every binder finished"
               : !data.pokemon_count
-                ? `No ${goal.labelOr} Pokémon`
+                ? `None for ${goal.labelOr}`
                 : missing > 0
                   ? `${missing} you still need`
                   : "You have them all"}
@@ -117,7 +115,7 @@ const SetSinglePage: React.FC = () => {
             {!goal.isCollecting
               ? "Start a new binder to see what you need from it."
               : data.pokemon_count
-                ? `Of the ${data.pokemon_count} Pokémon from ${goal.label} in this set.`
+                ? `Of the ${data.pokemon_count} Pokémon in this set for ${goal.label}.`
                 : "Only Pokémon from other regions."}
             {!data.in_boosters && " Not sold in booster packs."}
           </Text>

@@ -60,8 +60,8 @@ rpc.post("/put_in_pocket", async (c) => {
 });
 
 // Makes the Pokédex binders the setup planned (one or several, from the
-// regions picked), all or none. Triggers refuse ranges another Pokédex binder
-// already covers.
+// regions picked), or one for a type or a class, all or none. The table's
+// checks guard the type and class.
 rpc.post("/add_pokedex_binders", async (c) => {
   const binders = (await body(c)).binders;
   if (!Array.isArray(binders) || !binders.length) {
@@ -76,17 +76,25 @@ rpc.post("/add_pokedex_binders", async (c) => {
       last: integer(value.last_pokemon_id, `binders[${index}].last_pokemon_id`),
       pockets: integer(value.pockets_per_page, `binders[${index}].pockets_per_page`),
       pages: value.page_count == null ? null : integer(value.page_count, `binders[${index}].page_count`),
+      type: optionalText(value.pokemon_type, `binders[${index}].pokemon_type`),
+      pokemonClass: optionalText(value.pokemon_class, `binders[${index}].pokemon_class`),
+      // Each region on a fresh page, unless said otherwise.
+      regionPages: value.region_pages === false ? 0 : 1,
     };
   });
 
   const ids: number[] = [];
   transaction(db, () => {
     const insert = db.prepare(
-      `insert into binders (name, kind, first_pokemon_id, last_pokemon_id, pockets_per_page, page_count)
-       values (?, 'pokedex', ?, ?, ?, ?)`,
+      `insert into binders (name, kind, first_pokemon_id, last_pokemon_id, pockets_per_page, page_count,
+         pokemon_type, pokemon_class, region_pages)
+       values (?, 'pokedex', ?, ?, ?, ?, ?, ?, ?)`,
     );
     for (const row of rows) {
-      ids.push(Number(insert.run(row.name, row.first, row.last, row.pockets, row.pages).lastInsertRowid));
+      const { name, first, last, pockets, pages, type, pokemonClass, regionPages } = row;
+      ids.push(
+        Number(insert.run(name, first, last, pockets, pages, type, pokemonClass, regionPages).lastInsertRowid),
+      );
     }
   });
   return c.json({ ids });

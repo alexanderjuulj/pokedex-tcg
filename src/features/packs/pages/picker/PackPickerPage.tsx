@@ -44,7 +44,7 @@ const PackPickerPage: React.FC = () => {
       headline="Which pack?"
       desc={
         goal.isCollecting
-          ? `The packs on offer, by the ${goal.label} Pokémon you still need`
+          ? `The packs on offer, by the Pokémon you still need for ${goal.label}`
           : "The packs on offer, by the Pokémon you still need"
       }
     />
@@ -76,10 +76,10 @@ const PackPickerPage: React.FC = () => {
     );
   }
 
-  // The Pokémon you need: the goal's, with no card yet.
+  // The Pokémon you need: an empty pocket for it in a binder being
+  // collected.
   const pokemon = new Map((pokedex.data ?? []).map((entry) => [entry.id!, entry]));
-  const needed = (pokemonId: number) =>
-    goal.inGoal(pokemonId) && !pokemon.get(pokemonId)?.card_count;
+  const needed = goal.needed;
   const pokemonName = (pokemonId: number) => pokemon.get(pokemonId)?.name ?? `#${pokemonId}`;
 
   // What you last paid for a pack of the set, to start its price at.

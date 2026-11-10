@@ -10,13 +10,14 @@ import styles from "./PokemonTile.module.scss";
 
 type PokemonTileProps = {
   pokemon: Pokemon;
+  // Caught: no binder being collected has an empty pocket for it.
+  caught: boolean;
 };
 
 // Caught Pokémon fill with their type color; the rest wait in gray, as a
 // shadow.
-const PokemonTile: React.FC<PokemonTileProps> = ({ pokemon }) => {
+const PokemonTile: React.FC<PokemonTileProps> = ({ pokemon, caught }) => {
   const id = pokemon.id!;
-  const caught = (pokemon.card_count ?? 0) > 0;
   const types = [pokemon.primary_type, pokemon.secondary_type].filter(
     Boolean,
   ) as PokemonType[];
