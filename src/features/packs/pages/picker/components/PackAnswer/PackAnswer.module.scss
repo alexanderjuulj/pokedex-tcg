@@ -1,0 +1,16 @@
+// The answer, above the list: what to buy.
+.answer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem;
+  background: var(--bg-item-primary);
+  border: var(--bw-secondary) solid var(--clr-primary);
+  border-radius: var(--br-sm);
+
+  &_title {
+    font-size: var(--fs-h4);
+    font-weight: var(--fw-bold);
+    line-height: 1.25;
+  }
+}

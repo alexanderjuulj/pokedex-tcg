@@ -1,0 +1,16 @@
+// "How it's counted", folded away.
+.method {
+  font-size: var(--fs-sm);
+  color: var(--text-clr-secondary);
+
+  summary {
+    min-height: var(--tap-size);
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  p + p {
+    margin-top: 0.5rem;
+  }
+}

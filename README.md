@@ -321,6 +321,13 @@ Then start the app again.
   help you pick which packs to open. Sort them by Most needed, and limit
   them to a period (the last 2 years, since 2020…): the oldest sets hold
   many of the Pokémon you need, but their packs are hard to find.
+- **Which pack?** is for a shop, an expo or a webshop: add the packs they
+  have and their prices (they start at what you last paid). The answer
+  comes first: what to buy with your budget ("Buy 4 × 151"), or the best
+  pick. Below it the packs are ranked by what each Pokémon you need would
+  cost, or, without prices, by how many a pack gives. Tap one for its best
+  chances and what more packs of it add (fewer, as duplicates come). The
+  list stays in the page's address, so you can bookmark or share it.
 - **Pack odds:** a Pokémon's Sets tab says about how many packs of each
   set it takes to pull it ("About 1 in 9 packs"). It also names the set
   with the best odds, and the best one from the last two years, which a

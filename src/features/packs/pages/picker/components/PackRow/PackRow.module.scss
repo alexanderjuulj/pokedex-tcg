@@ -1,0 +1,110 @@
+// A pack on offer, ranked: what decides in two lines, the rest on a tap.
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 0.625rem 1rem 0.75rem;
+  background: var(--bg-item-primary);
+  border: var(--bw-primary) solid var(--border-clr-primary);
+  border-radius: var(--br-sm);
+
+  &__best {
+    border-color: var(--clr-primary);
+  }
+
+  &_head {
+    display: grid;
+    grid-template-columns: 1rem 3.5rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    min-height: var(--tap-size);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--text-clr);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  &_rank {
+    font-weight: var(--fw-bold);
+    color: var(--text-clr-secondary);
+    text-align: center;
+  }
+
+  &__best &_rank {
+    color: var(--clr-primary);
+  }
+
+  &_logo {
+    height: 2.25rem;
+  }
+
+  &_name {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  &_title {
+    overflow: hidden;
+    font-weight: var(--fw-bold);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &_meta,
+  &_caption {
+    font-size: var(--fs-xs);
+    color: var(--text-clr-secondary);
+  }
+
+  &_metric {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  &_number {
+    font-size: var(--fs-h4);
+    font-weight: var(--fw-bold);
+    line-height: 1.15;
+    white-space: nowrap;
+  }
+
+  // Under the name: the per-pack worth (or a warning) and the price.
+  &_line,
+  &_details {
+    margin-left: calc(1rem + 0.75rem);
+  }
+
+  &_line {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 7rem;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: var(--fs-sm);
+  }
+
+  &_warning {
+    color: var(--text-clr-warning);
+  }
+
+  &_details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    padding-top: 0.5rem;
+    border-top: var(--bw-primary) solid var(--border-clr-primary);
+    font-size: var(--fs-sm);
+  }
+
+  &_actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+}

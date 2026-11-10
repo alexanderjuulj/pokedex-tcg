@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   TableName,
   Tables,
@@ -128,6 +128,21 @@ export function useSetCatalog(cardSetId: number) {
         where: { card_set_id: cardSetId },
         order: ["pokemon_id"],
       }),
+  });
+}
+
+// Several sets' Pokémon cards at once (the packs on offer), each its own
+// query, shared with useSetCatalog.
+export function useSetCatalogs(cardSetIds: number[]) {
+  return useQueries({
+    queries: cardSetIds.map((cardSetId) => ({
+      queryKey: ["pokemon_catalog_cards", { cardSetId }],
+      queryFn: () =>
+        api.list("pokemon_catalog_cards", {
+          where: { card_set_id: cardSetId },
+          order: ["pokemon_id"],
+        }),
+    })),
   });
 }
 
