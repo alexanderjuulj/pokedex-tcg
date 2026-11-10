@@ -23,6 +23,7 @@ export type Database = {
           created_at: string;
           updated_at: string;
           page_count: number | null;
+          finished_on: string | null;
         };
         Insert: {
           id?: never;
@@ -34,6 +35,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           page_count?: number | null;
+          finished_on?: string | null;
         };
         Update: {
           id?: never;
@@ -45,6 +47,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           page_count?: number | null;
+          finished_on?: string | null;
         };
       };
       card_sets: {
@@ -386,9 +389,11 @@ export type Database = {
           page_count: number | null;
           first_pokemon_id: number | null;
           last_pokemon_id: number | null;
+          finished_on: string | null;
           created_at: string | null;
           updated_at: string | null;
           card_count: number | null;
+          caught_count: number | null;
         };
       };
       card_details: {

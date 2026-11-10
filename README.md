@@ -355,6 +355,13 @@ Then start the app again.
     kroner…), open Spending, tap ⋮ and pick it under Currency. It changes
     how the amounts are shown, not what they are: nothing is converted.
 - **More regions** can be added any time: Binders → Collect more regions.
+- **Finishing a binder:** when it's done, or you can't get the last few,
+  open it and pick Finish this binder in its menu. It stays as it is, pages
+  and cards, so you can still find a card in it, but its Pokémon stop
+  counting: the Pokédex, the sets and Which pack? follow the binders you
+  still collect, and the Pokédex shows it under Finished with its final
+  count. Then start a new binder for another region. Collect again undoes
+  it.
 
 ## For developers
 

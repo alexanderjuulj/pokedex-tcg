@@ -6,6 +6,7 @@ import { PageHeader, PageLayout } from "@/components/layout";
 import { BINDER_INVALIDATES } from "@/constants/invalidates";
 import {
   useBinder,
+  useBinders,
   useOwnedCards,
   usePokedex,
   useTableMutations,
@@ -16,6 +17,8 @@ import { useConfirmDelete } from "@/hooks/useConfirmDelete";
 import { useFormDialog } from "@/hooks/useFormDialog";
 import { useTabParam } from "@/hooks/useTabParam";
 import { formatDexNumber } from "@/lib/pokemon";
+import { toast } from "@/lib/toast";
+import { formatDate, todayIso } from "@/lib/utils";
 import { BinderDialog } from "@/features/binders/components";
 import { BINDER_KIND_LABELS } from "@/features/binders/constants";
 import { pagesLabel, pokedexPages, pokedexSections } from "@/features/binders/layout";
@@ -66,7 +69,9 @@ const BinderSinglePage: React.FC = () => {
   const cards = useOwnedCards();
   const pokedex = usePokedex();
   const binderDialog = useFormDialog<Binder>();
-  const { remove } = useTableMutations("binders", BINDER_INVALIDATES);
+  const { remove, update } = useTableMutations("binders", BINDER_INVALIDATES, { silent: true });
+  const binders = useBinders();
+  const [finishing, setFinishing] = useState(false);
   const deleteDialog = useConfirmDelete<Binder>({
     remove: async (deleted) => {
       await remove.mutateAsync(deleted.id!);
@@ -116,12 +121,46 @@ const BinderSinglePage: React.FC = () => {
 
   const page = Number(pageParam);
   const kind = data.kind as BinderKind;
+  const total = data.last_pokemon_id! - data.first_pokemon_id! + 1;
+  const caught = data.caught_count ?? 0;
   const desc =
-    kind === "pokedex"
-      ? `${formatDexNumber(data.first_pokemon_id!)}–${formatDexNumber(data.last_pokemon_id!)} · ` +
-        `${data.card_count} of ${data.last_pokemon_id! - data.first_pokemon_id! + 1} cards · ${pagesLabel(data)}`
-      : `${BINDER_KIND_LABELS[kind]} · ${data.card_count} ${data.card_count === 1 ? "card" : "cards"} · ` +
-        `${pages.length} ${pages.length === 1 ? "page" : "pages"}`;
+    kind !== "pokedex"
+      ? `${BINDER_KIND_LABELS[kind]} · ${data.card_count} ${data.card_count === 1 ? "card" : "cards"} · ` +
+        `${pages.length} ${pages.length === 1 ? "page" : "pages"}`
+      : data.finished_on
+        ? `Finished ${formatDate(data.finished_on)} · ${caught} of ${total} caught · ${pagesLabel(data)}`
+        : `${formatDexNumber(data.first_pokemon_id!)}–${formatDexNumber(data.last_pokemon_id!)} · ` +
+          `${data.card_count} of ${total} cards · ${pagesLabel(data)}`;
+
+  // Finished, a Pokédex binder stays as it is but leaves the goal: what the
+  // Pokédex, the sets and the pack chooser count.
+  const missingCount = total - caught;
+  const lastOne =
+    (binders.data ?? []).filter((other) => other.kind === "pokedex" && !other.finished_on).length === 1;
+  const finishText = [
+    missingCount > 0
+      ? `${data.name} is finished with ${caught} of ${total}. Its ${missingCount} missing Pokémon stop counting: the Pokédex, the sets and Which pack? follow the binders you still collect.`
+      : `All ${total} caught. The Pokédex, the sets and Which pack? will follow the binders you still collect.`,
+    "Its pages and cards stay as they are, and a card you find later still goes in its pocket.",
+    lastOne && "It's the last binder you collect for: start a new one from Binders.",
+  ]
+    .filter(Boolean)
+    .join(" ");
+  const pokedexItems =
+    kind !== "pokedex"
+      ? []
+      : data.finished_on
+        ? [
+            {
+              label: "Collect again",
+              onSelect: () =>
+                update.mutate(
+                  { id: data.id!, values: { finished_on: null } },
+                  { onSuccess: () => toast.success(`Collecting ${data.name} again`) },
+                ),
+            },
+          ]
+        : [{ label: "Finish this binder", onSelect: () => setFinishing(true) }];
 
   return (
     <PageLayout>
@@ -134,7 +173,10 @@ const BinderSinglePage: React.FC = () => {
         onEdit={() => binderDialog.edit(data)}
         actions={
           <DropdownMenu
-            items={[{ label: "Delete", onSelect: () => deleteDialog.request(data), danger: true }]}
+            items={[
+              ...pokedexItems,
+              { label: "Delete", onSelect: () => deleteDialog.request(data), danger: true },
+            ]}
           />
         }
       />
@@ -155,6 +197,25 @@ const BinderSinglePage: React.FC = () => {
         highlight={highlight}
       />
       <AlertDialog title="Delete binder" {...deleteDialog.props} />
+      <AlertDialog
+        title="Finish this binder"
+        description={finishText}
+        confirmLabel="Finish it"
+        open={finishing}
+        onOpenChange={setFinishing}
+        pending={update.isPending}
+        onConfirm={() =>
+          update.mutate(
+            { id: data.id!, values: { finished_on: todayIso() } },
+            {
+              onSuccess: () => {
+                setFinishing(false);
+                toast.success(`${data.name} finished`);
+              },
+            },
+          )
+        }
+      />
       <BinderDialog {...binderDialog.props} />
     </PageLayout>
   );

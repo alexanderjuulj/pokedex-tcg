@@ -105,16 +105,20 @@ const SetSinglePage: React.FC = () => {
         <SetLogo set={data} className={styles.summary_logo} />
         <Flex direction="column" gap="1" minWidth="0">
           <Text size="3" weight="bold">
-            {!data.pokemon_count
-              ? `No ${goal.labelOr} Pokémon`
-              : missing > 0
-                ? `${missing} you still need`
-                : "You have them all"}
+            {!goal.isCollecting
+              ? "Every binder finished"
+              : !data.pokemon_count
+                ? `No ${goal.labelOr} Pokémon`
+                : missing > 0
+                  ? `${missing} you still need`
+                  : "You have them all"}
           </Text>
           <Text size="2" color="gray">
-            {data.pokemon_count
-              ? `Of the ${data.pokemon_count} Pokémon from ${goal.label} in this set.`
-              : "Only Pokémon from other regions."}
+            {!goal.isCollecting
+              ? "Start a new binder to see what you need from it."
+              : data.pokemon_count
+                ? `Of the ${data.pokemon_count} Pokémon from ${goal.label} in this set.`
+                : "Only Pokémon from other regions."}
             {!data.in_boosters && " Not sold in booster packs."}
           </Text>
         </Flex>

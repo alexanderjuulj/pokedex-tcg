@@ -1,6 +1,6 @@
 import type React from "react";
 import { useState } from "react";
-import { useSearchParams } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import {
   EmptyState,
   Flex,
@@ -61,10 +61,12 @@ const PokedexOverviewPage: React.FC = () => {
     <PageHeader
       headline="Pokédex"
       desc={
-        data
-          ? `${caughtGoal} of ${collecting.length} caught` +
-            (caughtOther ? ` · ${caughtOther} from other regions` : "")
-          : undefined
+        !data
+          ? undefined
+          : goal.isCollecting
+            ? `${caughtGoal} of ${collecting.length} caught` +
+              (caughtOther ? ` · ${caughtOther} from other regions` : "")
+            : `Every binder finished · ${caughtOther} caught`
       }
     />
   );
@@ -159,9 +161,24 @@ const PokedexOverviewPage: React.FC = () => {
   return (
     <PageLayout>
       {header}
-      <Grid columns="2" gap="3">
-        {goal.regions.map(regionCard)}
-      </Grid>
+      {goal.isCollecting ? (
+        <Grid columns="2" gap="3">
+          {goal.regions.map(regionCard)}
+        </Grid>
+      ) : (
+        <Text size="2">
+          Every Pokédex binder is finished, so there&apos;s nothing to collect for.{" "}
+          <Link to="/binders">Start a new binder</Link> for another region.
+        </Text>
+      )}
+      {goal.finished.length > 0 && (
+        <Flex direction="column" gap="2">
+          <Text size="2" weight="bold" color="gray">
+            Finished
+          </Text>
+          <div className={styles.more}>{goal.finished.map(regionCard)}</div>
+        </Flex>
+      )}
       {goal.others.length > 0 && (
         <Flex direction="column" gap="2">
           <Text size="2" weight="bold" color="gray">

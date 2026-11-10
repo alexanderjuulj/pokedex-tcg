@@ -41,7 +41,7 @@ const PokedexBinderForm: React.FC<PokedexBinderFormProps> = ({ onDone }) => {
       <RegionPicker
         value={regions}
         onChange={setRegions}
-        taken={goal.regions.map((region) => region.value)}
+        taken={[...goal.regions, ...goal.finished].map((region) => region.value)}
       />
       <BinderSizeFields {...fields} />
       <BinderPlanList plan={plan} />

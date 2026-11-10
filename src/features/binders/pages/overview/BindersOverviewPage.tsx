@@ -39,10 +39,14 @@ const BindersOverviewPage: React.FC = () => {
         {!goal.isLoading && goal.others.length > 0 && (
           <>
             <Text size="2" color="gray">
-              {`A Pokédex binder keeps a pocket for every Pokémon of its regions, and those are the Pokémon the Pokédex counts. You collect ${goal.label}.`}
+              {`A Pokédex binder keeps a pocket for every Pokémon of its regions, and those are the Pokémon the Pokédex counts. ${
+                goal.isCollecting
+                  ? `You collect ${goal.label}.`
+                  : "Every one you have is finished: start a new one for another region."
+              }`}
             </Text>
             <Button variant="secondary" onClick={() => setCollectingMore(true)}>
-              Collect more regions
+              {goal.isCollecting ? "Collect more regions" : "Start a new binder"}
             </Button>
           </>
         )}

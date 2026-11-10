@@ -42,7 +42,11 @@ const PackPickerPage: React.FC = () => {
   const header = (
     <PageHeader
       headline="Which pack?"
-      desc={`The packs on offer, by the ${goal.label} Pokémon you still need`}
+      desc={
+        goal.isCollecting
+          ? `The packs on offer, by the ${goal.label} Pokémon you still need`
+          : "The packs on offer, by the Pokémon you still need"
+      }
     />
   );
   const loading = [sets, pokedex, goal, purchaseItems, money].some((query) => query.isLoading);
@@ -60,6 +64,14 @@ const PackPickerPage: React.FC = () => {
       <PageLayout>
         {header}
         <EmptyState message={`Failed to load: ${error.message}`} />
+      </PageLayout>
+    );
+  }
+  if (!goal.isCollecting) {
+    return (
+      <PageLayout>
+        {header}
+        <EmptyState message="Every Pokédex binder is finished, so there's no Pokémon you need. Start a new binder under Binders." />
       </PageLayout>
     );
   }
