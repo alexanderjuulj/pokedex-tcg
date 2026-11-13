@@ -7,6 +7,8 @@ import type { OwnedCard } from "@/hooks/queries";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { formatDexNumber } from "@/lib/pokemon";
 import { cn } from "@/lib/utils";
+import { POCKET_COLUMNS } from "@/features/binders/constants";
+import type { PocketsPerPage } from "@/features/binders/types";
 import { CardImage } from "@/features/cards/components";
 import { gradeLabel } from "@/features/cards/grading";
 import { PokemonArt } from "@/features/pokedex/components";
@@ -153,7 +155,9 @@ const BinderPages: React.FC<BinderPagesProps> = ({
         ref={scrollerRef}
         className={styles.scroller}
         onScroll={onScroll}
-        style={{ "--pocket-columns": pocketsPerPage === 4 ? 2 : 3 } as React.CSSProperties}
+        style={
+          { "--pocket-columns": POCKET_COLUMNS[pocketsPerPage as PocketsPerPage] ?? 3 } as React.CSSProperties
+        }
       >
         {units.map((numbers, index) => (
           <div key={index} className={cn(styles.unit, spreads && styles.unit__spread)}>
