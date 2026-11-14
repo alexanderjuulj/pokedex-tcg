@@ -303,8 +303,14 @@ sudo systemctl start pokedex-tcg
 
 ### Work on a copy of the real data locally
 
+With `pnpm dev` stopped:
+
 ```bash
-# With `pnpm dev` stopped:
-scp deploy@<server-ip>:/var/www/pokedex-tcg/shared/data/backups/pokedex-tcg-<stamp>.sqlite data/pokedex-tcg.sqlite
-rm -f data/pokedex-tcg.sqlite-wal data/pokedex-tcg.sqlite-shm
+pnpm db:pull
 ```
+
+It makes a fresh backup on the server (the nightly one can be hours old),
+downloads it in the same SSH login and checks it, backs up the local
+database and replaces it, then applies this checkout's migrations to the
+copy. It uses `DEPLOY_HOST` and `DEPLOY_SSH_KEY` from `.env`, as the deploy
+does.

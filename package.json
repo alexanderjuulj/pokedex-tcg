@@ -20,6 +20,7 @@
     "db:reset": "tsx --disable-warning=ExperimentalWarning db/cli.ts reset",
     "db:new": "tsx --disable-warning=ExperimentalWarning db/cli.ts new",
     "db:backup": "tsx --disable-warning=ExperimentalWarning db/cli.ts backup",
+    "db:pull": "bash deploy/pull-db.sh",
     "db:types": "tsx --disable-warning=ExperimentalWarning db/cli.ts types",
     "auth:login": "tsx --disable-warning=ExperimentalWarning db/cli.ts login",
     "catalog:pull": "tsx --disable-warning=ExperimentalWarning db/cli.ts catalog",

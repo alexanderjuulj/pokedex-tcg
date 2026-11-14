@@ -409,6 +409,7 @@ Phone / browser ──▶ Vite (:5320)  ──/api──▶  Hono API (:5321)  �
 | Change the colors         | `src/utils/scss/base/_colors.scss`                                                       |
 | Change the icon           | Replace `public/AppIcon.png` (1024 px), then `pnpm icons` (macOS)                        |
 | Start the local data over | `pnpm db:reset` (backs up first), then `pnpm catalog:pull`                               |
+| Copy the server's data    | `pnpm db:pull`, with `pnpm dev` stopped (replaces the local database, after a backup)    |
 
 `data/` (the database, backups and card scans), `public/pokemon/` (the
 artwork) and `.env` (the login) are gitignored. Once the app runs on a
